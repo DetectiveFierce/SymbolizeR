@@ -1,0 +1,474 @@
+---
+title: "Package Internals"
+output: 
+  html_document:
+    template: template.html
+    self_contained: false
+    toc: false
+    theme: null
+    highlight: pygments
+    mathjax: null
+vignette: >
+  %\VignetteIndexEntry{Package Internals}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE,
+  comment = "#>"
+)
+```
+
+This vignette provides a **technical deep-dive** into SymbolizeR's architecture. It explains how expressions are parsed, transformed, and simplified internally.
+
+```{r setup}
+library(SymbolizeR)
+```
+
+---
+
+## Architecture Overview
+
+SymbolizeR is built around **R's native expression tree representation**. The core insight is that unevaluated R code (captured via `substitute()` or `quote()`) is a tree structure that we can traverse and transform.
+
+```
+User Call: E(a * X + b)
+    │
+    ▼
+┌────────────────────────────┐
+│  Expression Tree Capture   │  ← substitute(expr) captures unevaluated AST
+└────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────┐
+│  Type Classification       │  ← classify.type() distinguishes RV/const/number
+└────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────┐
+│  Recursive Transformation  │  ← expect.recursive() applies linearity rules
+└────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────┐
+│  Distribution Lookup       │  ← get.first.moment() substitutes known E[X]
+└────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────┐
+│  Expression Simplification │  ← simplify.expr() removes identity elements
+└────────────────────────────┘
+    │
+    ▼
+Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))
+```
+
+---
+
+## File Organization
+
+The R source files are numbered by dependency order:
+
+| File | Purpose |
+|------|---------|
+| `00_utils.R` | Core utilities: `classify.type`, `ensure.expression`, `expand.poly` |
+| `01_internal_expect.R` | Expectation engine: `expect.recursive` |
+| `02_internal_simplify.R` | Simplification: `simplify.expr` |
+| `03_user_wrappers.R` | Public API: `E()`, `Var()`, `Cov()`, `derive.*()` |
+| `04_distributions.R` | Distribution registry: `define()`, moment getters, independence |
+| `05_calculus.R` | Symbolic differentiation and integration |
+| `06_latex.R` | LaTeX conversion: `to.latex()` |
+
+---
+
+## Expression Trees in R
+
+R expressions are **abstract syntax trees (ASTs)**. Every unevaluated call is a list-like structure:
+
+```{r ast}
+# Capture an unevaluated expression
+expr <- quote(a * X + b)
+
+# The tree structure
+is.call(expr)   # TRUE - it's a call object
+
+# First element is the operator
+expr[[1]]       # `+` (the function being called)
+
+# Remaining elements are arguments
+expr[[2]]       # a * X (left operand - itself a call)
+expr[[3]]       # b (right operand - a symbol)
+```
+
+### Tree Visualization
+
+For `a * X + b`, the AST looks like:
+
+```
+      (+)
+     /   \
+   (*)    b
+  /   \
+ a     X
+```
+
+We traverse this tree recursively, transforming nodes according to mathematical rules.
+
+---
+
+## Type Classification (`00_utils.R`)
+
+The `classify.type()` function determines how to treat each node:
+
+| Return Value | Condition | Example |
+|--------------|-----------|---------|
+| `"number"` | `is.numeric(sym)` | `5`, `2.5` |
+| `"rv"` | Symbol starting with uppercase | `X`, `Y`, `Normal` |
+| `"const"` | Symbol starting with lowercase | `a`, `mu`, `sigma` |
+| `"call"` | Complex expression | `a * X`, `X + Y` |
+
+```{r classify, eval=FALSE}
+classify.type(quote(X))       # "rv"
+classify.type(quote(mu))      # "const"
+classify.type(5)              # "number"
+classify.type(quote(a * X))   # "call"
+```
+
+This classification drives all downstream behavior: constants pass through unchanged, random variables get wrapped in `E()`, and nested calls recurse.
+
+---
+
+## The Expectation Engine (`01_internal_expect.R`)
+
+The `expect.recursive()` function walks the expression tree, applying:
+
+$$E[aX + b] = aE[X] + b \qquad E[X + Y] = E[X] + E[Y]$$
+
+### Algorithm Pseudocode
+
+```
+expect.recursive(expr):
+    if expr is numeric:
+        return expr
+    
+    if expr is symbol:
+        if lowercase (constant):
+            return expr
+        if uppercase (RV):
+            if has known distribution:
+                return first_moment
+            else:
+                return E(expr)
+    
+    if expr is call:
+        op = operator of expr
+        
+        if op is '+' or '-':
+            return op(expect.recursive(left), expect.recursive(right))
+        
+        if op is '*':
+            classify both operands
+            if const * RV:
+                return const * expect.recursive(RV)
+            if RV * RV:
+                if independent:
+                    return expect.recursive(left) * expect.recursive(right)
+                else:
+                    return E(left * right)  # cannot simplify
+            ...
+```
+
+### Handling Products
+
+The trickiest case is multiplication involving random variables:
+
+```{r products}
+# Constant * RV: factor out constant
+E(a * X)
+
+# RV * RV without independence: cannot factor
+E(X * Y)
+
+# With independence declared:
+assume.independent(X, Y)
+E(X * Y)
+clear.independence()
+```
+
+---
+
+## Expression Simplification (`02_internal_simplify.R`)
+
+After transformation, `simplify.expr()` cleans up identity operations:
+
+| Pattern | Simplifies To |
+|---------|---------------|
+| `x + 0` | `x` |
+| `0 + x` | `x` |
+| `x * 1` | `x` |
+| `x * 0` | `0` |
+| `x - 0` | `x` |
+| `0 / x` | `0` |
+| `x^0` | `1` |
+| `x^1` | `x` |
+| `E(constant)` | `constant` |
+
+The simplifier also recurses into nested expressions, making multiple passes when needed:
+
+```{r simplify, eval=FALSE}
+# Internal call (not exported)
+simplify.expr(quote(x + 0))    # x
+simplify.expr(quote(1 * E(a))) # a (E of constant becomes constant)
+```
+
+---
+
+## Polynomial Expansion (`00_utils.R`)
+
+The `expand.poly()` function handles algebraic expansion for variance/covariance calculations:
+
+```{r expand}
+# Variance needs (aX + b)^2 expanded
+Var(a * X + b)
+```
+
+Internally, `expand.poly()` applies:
+
+$$(A + B)^2 = A^2 + 2AB + B^2$$
+$$(A \cdot B)^n = A^n \cdot B^n$$
+
+And distributes multiplication over addition:
+
+$$A \cdot (B + C) = A \cdot B + A \cdot C$$
+
+This expansion happens **before** the expectation engine runs, so `E()` sees individual terms rather than parenthesized powers.
+
+---
+
+## Distribution System (`04_distributions.R`)
+
+### The Package Environment
+
+Distributions are stored in a private environment `pkg.env`:
+
+```{r define}
+define(X ~ Normal(mu, sigma))
+```
+
+This stores:
+
+```{r stored, eval=FALSE}
+pkg.env$X = list(
+  distribution = "Normal",
+  params = list(mu = quote(mu), sigma = quote(sigma))
+)
+```
+
+### Moment Lookup
+
+When `expect.recursive()` encounters a registered variable, it calls:
+
+- `get.first.moment(var_name)` → Returns symbolic E[X]
+- `get.second.moment(var_name)` → Returns symbolic E[X²]
+- `get.mgf(var_name, t)` → Returns M_X(t) = E[e^tX]
+
+Each function uses a `switch()` on the distribution name to return the appropriate formula:
+
+```{r moments}
+define(X ~ Normal(mu, sigma))
+E(X)      # mu (from get.first.moment)
+E(X^2)    # sigma^2 + mu^2 (from get.second.moment)
+clear.definitions()
+```
+
+### Independence Tracking
+
+Independence is stored as pairs in `pkg.env$.independence_pairs`:
+
+```{r independence2}
+assume.independent(X, Y, Z)  # Creates pairs: X:Y, X:Z, Y:Z
+show.independence()
+clear.independence()
+```
+
+The `are.independent(x, y)` function checks if a pair exists in this list.
+
+---
+
+## Calculus Module (`05_calculus.R`)
+
+### Symbolic Differentiation
+
+`deriv.sym()` wraps `stats::D()` with special handling for `E()` calls:
+
+```{r deriv}
+deriv.sym(x^3, x)           # 3 * x^2
+deriv.sym(x * E(Y), x)      # E(Y) - treats E(Y) as constant
+```
+
+The `protect.E()` / `restore.E()` pattern replaces `E(...)` with temp symbols `__E_...___` before calling `stats::D()`, then restores them after.
+
+### Definite Integration
+
+`integrate.sym()` uses **kernel recognition** rather than symbolic antiderivatives:
+
+```{r integrate}
+# Gamma kernel: x^a * exp(-bx)
+integrate.sym(x^2 * exp(-x), x, 0, Inf)
+
+# Gaussian kernel: exp(-ax^2)
+integrate.sym(exp(-x^2), x, -Inf, Inf)
+
+# Beta kernel: x^a * (1-x)^b
+integrate.sym(x * (1-x), x, 0, 1)
+```
+
+If no kernel matches, an unevaluated `Integrate()` call is returned.
+
+---
+
+## LaTeX Conversion (`06_latex.R`)
+
+The `to.latex()` S3 generic dispatches to `expr.to.latex()` for recursive conversion:
+
+```{r latex}
+to.latex(E(a * X + b))
+to.latex(Var(X))
+```
+
+Key conversions:
+
+| R Expression | LaTeX Output |
+|--------------|--------------|
+| `E(X)` | `\mathbb{E}[X]` |
+| `Var(X)` | `\text{Var}(X)` |
+| `a/b` | `\frac{a}{b}` |
+| `x^2` | `x^{2}` |
+| `sqrt(x)` | `\sqrt{x}` |
+| `mu`, `sigma` | `\mu`, `\sigma` |
+
+Greek letters are mapped via `.greek_letters`, and subscript notation (e.g., `X_1`) produces proper LaTeX subscripts.
+
+---
+
+## Summary: Data Flow
+
+A complete call like `E(a * X + b)` flows through:
+
+1. **Capture**: `substitute(expr)` → unevaluated AST
+2. **Normalize**: `ensure.expression()` → consistent form
+3. **Transform**: `expect.recursive()` → apply linearity
+4. **Lookup**: `get.first.moment()` → substitute known moments
+5. **Simplify**: `simplify.expr()` → remove identities
+6. **Return**: Cleaned expression as R call object
+
+The result remains an **unevaluated R expression**—not a string, not a number—which means it can be further manipulated, converted to LaTeX, or used in subsequent calculations.
+
+---
+
+
+
+This is where we lift the hood and show you the engine. 
+
+How does SymbolizeR know that `X` is a random variable and `mu` is a constant without you ever telling it? And how does `E(a*X + b)` turn into `a*E(X) + b`?
+
+It uses a technique called **Non-Standard Evaluation (NSE)** to capture your code before it runs, and then it walks through the structure of that code using a **Recursive Descent Parser**.
+
+---
+
+## The Code is a Tree
+
+In R, every expression is actually a tree. When you type `a * X + b`, R sees:
+
+```
+    (+)
+    / \
+  (*)  b
+  / \
+ a   X
+```
+
+SymbolizeR walks down this tree. 
+
+1. It sees the `+`. It knows `E(LHS + RHS) = E(LHS) + E(RHS)`. So it splits the problem in two.
+2. It looks at the left branch: `a * X`. It checks if `a` is random (lowercase $\to$ no) and if `X` is random (uppercase $\to$ yes).
+3. Since it's `Constant * Random`, it knows it can pull the constant out: `a * E(X)`.
+4. It looks at the right branch: `b`. It's a constant. `E(Constant) = Constant`.
+
+The result is reassembled: `a * E(X) + b`.
+
+---
+
+## How it Determines Types
+
+We use a strict but simple heuristic based on variable names. This logic sits in `get.type()`:
+
+1. **Numbers** (like `5` or `3.14`) are always Constants.
+2. **Calls** (like `sin(x)` or `exp(y)`) are analyzed recursively. If they contain *any* random variable, the whole call is Random.
+3. **Symbols** (variable names) are checked against the convention:
+   - Starts with `A-Z` $\to$ **Random Variable**
+   - Starts with `a-z` $\to$ **Constant**
+   - Starts with `.` $\to$ **Constant**
+
+This is why `mu` works as a constant (starts with lowercase 'm') and `X` works as a variable.
+
+---
+
+## The Expectation Engine
+
+The `E()` function isn't doing any statistics. It's doing **pattern matching**.
+
+Internally, it looks something like this pseudocode:
+
+```r
+process_node <- function(node) {
+  if (is.sum(node)) {
+    return( process_node(node$left) + process_node(node$right) )
+  }
+  
+  if (is.product(node)) {
+    if (is.constant(node$left) && is.random(node$right)) {
+      return( node$left * E(node$right) )
+    }
+  }
+  
+  # ... more rules ...
+}
+```
+
+It keeps recursing until it hits a base case (like a defined distribution or a generic variable).
+
+---
+
+## Variance is Just Expectation
+
+We didn't write a separate complex engine for `Var()`. We essentially defined it as a macro:
+
+`Var(X)` $\to$ `E(X^2) - (E(X))^2`
+
+When you call `Var(a*X)`, SymbolizeR expands it out:
+1. Calculates `E((a*X)^2)` $\to$ `E(a^2 * X^2)` $\to$ `a^2 * E(X^2)`
+2. Calculates `(E(a*X))^2` $\to$ `(a * E(X))^2` $\to$ `a^2 * E(X)^2`
+3. Subtracts them.
+
+This "rewrite rule" approach ensures that `Var()` is always mathematically consistent with `E()`.
+
+---
+
+## Why did we assume independence sometimes?
+
+You might notice if you run `E(X * Y)`, it doesn't simplify. That's because `E[XY] = E[X]E[Y]` is **only** true if `X` and `Y` are independent (or at least uncorrelated).
+
+We track independence using an internal environment. When you call `assume.independent(X, Y)`, we literally add a tag to the pair `(X, Y)`. The engine checks this tag before applying the product rule.
+
+This makes the system safe. It assumes nothing, unless you or a definition explicitly grants permission.
+
+<div class="page-nav">
+  <a href="calculus.html" class="page-nav-item prev">
+    <span class="page-nav-label">Previous</span>
+    <span class="page-nav-title">← Calculus</span>
+  </a>
+  <div></div>
+</div>

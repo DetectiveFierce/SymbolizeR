@@ -1,0 +1,142 @@
+---
+title: "Getting Started with SymbolizeR"
+output: 
+  html_document:
+    template: template.html
+    self_contained: false
+    toc: false
+    theme: null
+    highlight: pygments
+    mathjax: null
+vignette: >
+  %\VignetteIndexEntry{Getting Started with SymbolizeR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE,
+  comment = "#>"
+)
+```
+
+
+Most R packages love numbers. Give them data, they give you separate statistics. **SymbolizeR** is different—it cares about the *formulas* themselves. It lets you write statistical expressions in plain R code and see how they simplify, without needing to plug in a single data point first.
+
+It's essentially a symbolic math engine, but one that speaks the language of probability theory natively.
+
+```{r setup}
+library(SymbolizeR)
+```
+
+---
+
+## The "Textbook" Convention
+
+When we built SymbolizeR, we didn't want to force you to manually declare every single variable before you used it. That gets tedious fast. 
+
+Instead, we borrowed a convention you've probably seen in every probability textbook ever written: **Capital letters are Random Variables, and lowercase letters are constants.**
+
+It's a simple heuristic, but it makes the code feel almost like handwriting:
+
+| Variable | Type | Why? |
+|----------|------|------|
+| `X`, `Y`, `Theta` | **Random Variable** | Starts with uppercase (A-Z) |
+| `mu`, `sigma`, `a` | **Constant** | Starts with lowercase (a-z) |
+| `42`, `1.5` | **Number** | It's just a number |
+
+You don't need to register these ahead of time. Just start typing:
+
+```{r convention}
+E(X)      # R sees a capital 'X', so it treats it as random
+E(mu)     # R sees a lowercase 'mu', so it knows it's constant
+E(5)      # Numbers are just numbers
+```
+
+---
+
+## Linearity is Built In
+
+The core of the package is the `E()` function. It's not just a wrapper; it's an engine that understands the **Linearity of Expectation**. It knows that constants can be pulled out and sums can be split apart.
+
+This allows you to simplify expressions symbolically:
+
+```{r expectation}
+# Expanding a linear transformation
+E(a * X + b)
+
+# Mixing constants and variables
+E(2 * X + 3 * Y)
+```
+
+Notice what happened there? SymbolizeR automatically applied the rules $E[aX + b] = aE[X] + b$ and $E[X + Y] = E[X] + E[Y]$. It does the algebra for you.
+
+### What about multiplication?
+
+Multiplication is trickier. If you have $E[XY]$, you can't just turn that into $E[X]E[Y]$ unless you know for a fact that $X$ and $Y$ are independent. SymbolizeR is conservative—it won't make that assumption unless you tell it to.
+
+```{r product}
+E(X * Y)
+```
+
+See? It stays as $E[XY]$. But if you *do* know they are independent, you can say so:
+
+```{r independence}
+assume.independent(X, Y)
+E(X * Y)  
+clear.independence() 
+```
+
+Now it factors them out. This explicit control prevents you from making accidental mathematical errors.
+
+---
+
+## Variance and Covariance
+
+We've also taught it the definitions of Variance and Covariance. Under the hood, `Var(X)` basically just expands to $E[X^2] - E[X]^2$. 
+
+This means logic about constants works exactly as you'd expect:
+
+```{r variance}
+Var(a * X + b)
+```
+
+Because adding a constant $b$ simply shifts the distribution, it doesn't affect the spread, so it disappears from the variance. The scaling factor $a$ comes out squared.
+
+The same logic applies to covariance:
+
+```{r covariance}
+Cov(X, Y)
+```
+
+---
+
+## Where it Utility Stops (For Now)
+
+It's important to know what SymbolizeR *isn't*. It is not a general-purpose Computer Algebra System like Mathematica. It specializes in **expectations of polynomials**.
+
+If you throw something non-linear at it that it doesn't have a specific rule for, it will often just hand it back to you:
+
+```{r limitations}
+E(1/X)    # No general rule for the expectation of an inverse
+E(X^Y)    # This is getting too wild
+```
+
+It's designed to help you with the messy algebra of moments, derivations, and standard probability manipulations—the stuff that takes up 80% of the time in a standard stats derivation.
+
+---
+
+## Next Steps
+
+Now that you've seen the basics, here's where you can go deeper:
+
+<div class="page-nav">
+  <div></div>
+  <a href="distributions.html" class="page-nav-item next">
+    <span class="page-nav-label">Next</span>
+    <span class="page-nav-title">Distributions →</span>
+  </a>
+</div>
+

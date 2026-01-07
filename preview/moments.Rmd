@@ -1,0 +1,229 @@
+---
+title: "Moments & Higher-Order Statistics"
+output: 
+  html_document:
+    template: template.html
+    self_contained: false
+    toc: false
+    theme: null
+    highlight: pygments
+    mathjax: null
+vignette: >
+  %\VignetteIndexEntry{Moments & Higher-Order Statistics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE,
+  comment = "#>"
+)
+```
+
+
+```{r setup}
+library(SymbolizeR)
+```
+
+Beyond expectation and variance, SymbolizeR provides **raw moments**, **skewness**, and **excess kurtosis**—all computed symbolically with full simplification.
+
+---
+
+## Raw Moments with `moment()`
+
+The `moment(X, n)` function computes the nth raw moment $E[X^n]$ for defined distributions:
+
+```{r raw-moments}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+# First four raw moments
+moment(X, 1)  # E[X]
+moment(X, 2)  # E[X²]
+moment(X, 3)  # E[X³]
+moment(X, 4)  # E[X⁴]
+
+clear.definitions()
+```
+
+### Supported Distributions
+
+Raw moments up to order 4 are supported for **all 14 distributions**:
+
+| Distribution | E[X³] | E[X⁴] | Notes |
+|--------------|-------|-------|-------|
+| **Normal** | ✅ | ✅ | Symmetric |
+| **Uniform** | ✅ | ✅ | Symmetric |
+| **Exponential** | ✅ | ✅ |  |
+| **Gamma** | ✅ | ✅ |  |
+| **Beta** | ✅ | ✅ |  |
+| **LogNormal** | ✅ | ✅ | `exp()` form |
+| **Weibull** | ✅ | ✅ | Uses `gamma()` |
+| **Binomial** | ✅ | ✅ |  |
+| **Poisson** | ✅ | ✅ |  |
+| **Geometric** | ✅ | ✅ |  |
+| **NegBinomial** | ✅ | ✅ |  |
+| **ChiSq** | ✅ | ✅ |  |
+| **InvGamma** | ✅* | ✅* | *Requires α > 3, α > 4 |
+| **StudentT** | ✅* | ✅* | *Requires df > 3, df > 4 |
+
+```{r moment-examples}
+clear.definitions()
+
+# Gamma distribution
+define(Y ~ Gamma(alpha, beta))
+moment(Y, 3)  # E[X³] = α(α+1)(α+2) / β³
+
+# Beta distribution
+define(Z ~ Beta(alpha, beta))
+moment(Z, 3)  # Uses (α+β) terms
+
+# Geometric distribution
+define(N ~ Geometric(p))
+moment(N, 4)
+
+clear.definitions()
+```
+
+### Constrained Moments
+
+Some distributions have moments that only exist under parameter constraints. These are annotated with their constraints accordingly:
+
+```{r constrained-moments}
+clear.definitions()
+
+# InvGamma third moment requires α > 3
+define(X ~ InvGamma(alpha, beta))
+moment(X, 3)
+
+# StudentT kurtosis requires df > 4
+define(T ~ StudentT(df))
+moment(T, 4)
+
+clear.definitions()
+```
+
+### Gamma Function Forms
+
+For Weibull and related distributions, moments involve the gamma function:
+
+```{r gamma-function}
+clear.definitions()
+define(W ~ Weibull(k, lambda))
+moment(W, 3)  # λ³ · Γ(1 + 3/k)
+
+clear.definitions()
+```
+
+---
+
+## Skewness
+
+**Skewness** measures asymmetry of the distribution:
+$$\gamma_1 = \frac{E[(X - \mu)^3]}{\sigma^3}$$
+
+For symmetric distributions like Normal, skewness equals **zero**:
+
+```{r skewness}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+Skewness(X)  # Returns 0 for Normal
+
+clear.definitions()
+```
+
+### Step-by-Step Derivation
+
+Use `derive.Skewness()` to see the computation:
+
+```{r derive-skewness}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+derive.Skewness(X)
+
+clear.definitions()
+```
+
+---
+
+## Excess Kurtosis
+
+**Excess kurtosis** measures tail heaviness relative to Normal:
+$$\gamma_2 = \frac{E[(X - \mu)^4]}{\sigma^4} - 3$$
+
+The Normal distribution has excess kurtosis of **zero** (mesokurtic):
+
+```{r kurtosis}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+Kurtosis(X)  # Returns 0 for Normal
+
+# Non-excess kurtosis (raw kurtosis)
+Kurtosis(X, excess = FALSE)
+
+clear.definitions()
+```
+
+### Step-by-Step Derivation
+
+```{r derive-kurtosis}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+derive.Kurtosis(X)
+
+clear.definitions()
+```
+
+---
+
+## Full Polynomial Simplification
+
+A key feature of SymbolizeR: **complete symbolic simplification**. When computing higher-order statistics, all terms are expanded, collected, and cancelled automatically.
+
+For example, Kurtosis involves $E[X^4]$, $E[X^3]$, $E[X^2]$, and $E[X]$—resulting in a complex polynomial. SymbolizeR:
+
+1. **Expands products**: $\mu \cdot (\mu^3 + 3\mu\sigma^2) \to \mu^4 + 3\mu^2\sigma^2$
+2. **Combines powers**: $(σ^2)^2 \to σ^4$
+3. **Collects like terms**: Adds/subtracts terms with matching bases
+4. **Cancels**: Terms like $\mu^4 - \mu^4 = 0$
+
+The result: Normal's excess kurtosis correctly simplifies to **0**, not a complex unsimplified expression.
+
+---
+
+## LaTeX Export
+
+Convert any result to LaTeX for papers and homework:
+
+```{r latex-moments}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+# LaTeX for a derivation
+to.latex(derive.E(X))
+
+clear.definitions()
+```
+
+---
+
+## What's Next?
+
+- **[Calculus](calculus.html)**: Symbolic differentiation and integration
+- **[Internals](internals.html)**: How the simplification engine works
+
+<div class="page-nav">
+  <a href="derivations.html" class="page-nav-item prev">
+    <span class="page-nav-label">Previous</span>
+    <span class="page-nav-title">← Derivations</span>
+  </a>
+  <a href="calculus.html" class="page-nav-item next">
+    <span class="page-nav-label">Next</span>
+    <span class="page-nav-title">Calculus →</span>
+  </a>
+</div>

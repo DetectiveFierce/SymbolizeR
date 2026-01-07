@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Step-by-Step Derivations - SymbolizeR</title>
+    <meta name="description" content="Step-by-Step
+Derivations - SymbolizeR documentation">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="dist/output.css">
+    
+    <!-- Pandoc/Rmarkdown Syntax Highlighting Override -->
+    <style>
+        /* Reset pandoc defaults to work with our theme */
+        html { -webkit-text-size-adjust: 100%; }
+        pre > code.sourceCode { white-space: pre; position: relative; }
+        pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+        pre > code.sourceCode > span:empty { height: 1.2em; }
+        .sourceCode { overflow: visible; }
+        code.sourceCode > span { color: inherit; text-decoration: inherit; }
+        div.sourceCode { margin: 1em 0; }
+        pre.sourceCode { margin: 0; }
+        @media screen {
+            div.sourceCode { overflow: auto; }
+        }
+    </style>
+    
+        <script src="derivations_files/header-attrs-2.29/header-attrs.js"></script>
+    </head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <button class="mobile-menu-btn" aria-label="Toggle Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <a href="index.html" class="header-logo">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="16" cy="16" r="12" stroke-dasharray="4 2"/>
+                <path d="M11 16c0-6 5-10 5-10s5 4 5 10-5 10-5 10-5-4-5-10z"/>
+                <circle cx="16" cy="16" r="3" fill="currentColor"/>
+            </svg>
+            SymbolizeR
+        </a>
+        <nav class="header-nav">
+            <a href="index.html">Docs</a>
+            <a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+        <button class="header-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Quick search...
+            <kbd>Ctrl K</kbd>
+        </button>
+    </header>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Layout -->
+    <div class="docs-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Documentation</div>
+                <ul class="sidebar-nav">
+                    <li><a href="getting-started.html">Getting Started</a></li>
+                    <li><a href="distributions.html">Distributions</a></li>
+                    <li><a href="derivations.html">Derivations</a></li>
+                    <li><a href="moments.html">Moments & Statistics</a></li>
+                    <li><a href="calculus.html">Calculus</a></li>
+                    <li><a href="internals.html">Package Internals</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub →</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <article class="content-article">
+                                <h1 class="title">Step-by-Step
+Derivations</h1>
+                                
+                <div class="sourceCode" id="cb1"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(SymbolizeR)</span></code></pre></div>
+                <p>SymbolizeR’s derivation functions show <strong>every
+                step</strong> of the calculation—invaluable for
+                learning, teaching, and verification.</p>
+                <hr />
+                <div id="derive.e-expectation-derivation"
+                class="section level2">
+                <h2><code>derive.E()</code> — Expectation
+                Derivation</h2>
+                <div class="sourceCode" id="cb2"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">derive.E</span>(a <span class="sc">*</span> X <span class="sc">+</span> b)</span></code></pre></div>
+                <pre><code>#&gt; Derivation of: E(a * X + b) 
+#&gt; ==================================================
+#&gt; 
+#&gt; Step 1: Starting expression
+#&gt;   Rule: Input
+#&gt;   =&gt; E(a * X + b)
+#&gt; 
+#&gt; Step 2: Apply expectation rules
+#&gt;   Rule: Linearity: E[aX + b] = aE[X] + b, E[X + Y] = E[X] + E[Y]
+#&gt;   =&gt; a * E(X) + b
+#&gt; 
+#&gt; Step 3: Substitute known distributions
+#&gt;   Rule: If X ~ Distribution, replace E[X] with known moment
+#&gt;   =&gt; a * E(X) + b
+#&gt; 
+#&gt; Step 4: Final result
+#&gt;   Rule: Done
+#&gt;   =&gt; a * E(X) + b
+#&gt; 
+#&gt; ==================================================
+#&gt; Final Answer: a * E(X) + b</code></pre>
+                <div id="with-defined-distributions"
+                class="section level3">
+                <h3>With Defined Distributions</h3>
+                <div class="sourceCode" id="cb4"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">derive.E</span>(a <span class="sc">*</span> X <span class="sc">+</span> b)</span></code></pre></div>
+                <pre><code>#&gt; Derivation of: E(a * X + b) 
+#&gt; ==================================================
+#&gt; 
+#&gt; Step 1: Starting expression
+#&gt;   Rule: Input
+#&gt;   =&gt; E(a * X + b)
+#&gt; 
+#&gt; Step 2: Apply expectation rules
+#&gt;   Rule: Linearity: E[aX + b] = aE[X] + b, E[X + Y] = E[X] + E[Y]
+#&gt;   =&gt; a * mu + b
+#&gt; 
+#&gt; Step 3: Substitute known distributions
+#&gt;   Rule: If X ~ Distribution, replace E[X] with known moment
+#&gt;   =&gt; a * mu + b
+#&gt; 
+#&gt; Step 4: Final result
+#&gt;   Rule: Done
+#&gt;   =&gt; a * mu + b
+#&gt; 
+#&gt; ==================================================
+#&gt; Final Answer: a * mu + b</code></pre>
+                <div class="sourceCode" id="cb6"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                </div>
+                <div id="linear-combinations" class="section level3">
+                <h3>Linear Combinations</h3>
+                <div class="sourceCode" id="cb7"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">derive.E</span>(X <span class="sc">+</span> Y <span class="sc">+</span> Z)</span></code></pre></div>
+                <pre><code>#&gt; Derivation of: E(X + Y + Z) 
+#&gt; ==================================================
+#&gt; 
+#&gt; Step 1: Starting expression
+#&gt;   Rule: Input
+#&gt;   =&gt; E(X + Y + Z)
+#&gt; 
+#&gt; Step 2: Apply expectation rules
+#&gt;   Rule: Linearity: E[aX + b] = aE[X] + b, E[X + Y] = E[X] + E[Y]
+#&gt;   =&gt; E(X) + E(Y) + E(Z)
+#&gt; 
+#&gt; Step 3: Substitute known distributions
+#&gt;   Rule: If X ~ Distribution, replace E[X] with known moment
+#&gt;   =&gt; E(X) + E(Y) + E(Z)
+#&gt; 
+#&gt; Step 4: Final result
+#&gt;   Rule: Done
+#&gt;   =&gt; E(X) + E(Y) + E(Z)
+#&gt; 
+#&gt; ==================================================
+#&gt; Final Answer: E(X) + E(Y) + E(Z)</code></pre>
+                <hr />
+                </div>
+                </div>
+                <div id="derive.var-variance-derivation"
+                class="section level2">
+                <h2><code>derive.Var()</code> — Variance Derivation</h2>
+                <p>Shows complete variance calculation using <span
+                class="math inline">Var(<em>X</em>) = <em>E</em>[<em>X</em><sup>2</sup>] − <em>E</em>[<em>X</em>]<sup>2</sup></span>:</p>
+                <div class="sourceCode" id="cb9"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">derive.Var</span>(X)</span></code></pre></div>
+                <pre><code>#&gt; Derivation of: Var(X) 
+#&gt; ==================================================
+#&gt; 
+#&gt; Step 1: Starting expression
+#&gt;   Rule: Input
+#&gt;   =&gt; Var(X)
+#&gt; 
+#&gt; Step 2: Apply variance definition
+#&gt;   Rule: Var[X] = E[X²] - E[X]²
+#&gt;   =&gt; E[X^2] - E[X]²
+#&gt; 
+#&gt; Step 3: Compute E[X²]
+#&gt;   Rule: Apply expectation rules to X²
+#&gt;   =&gt; E(X^2) - E[X]²
+#&gt; 
+#&gt; Step 4: Compute E[X]²
+#&gt;   Rule: Apply expectation rules to X, then square
+#&gt;   =&gt; E(X^2) - E(X)^2
+#&gt; 
+#&gt; Step 5: Combine terms
+#&gt;   Rule: E[X²] - E[X]²
+#&gt;   =&gt; E(X^2) - E(X)^2
+#&gt; 
+#&gt; Step 6: Final result
+#&gt;   Rule: Done
+#&gt;   =&gt; E(X^2) - E(X)^2
+#&gt; 
+#&gt; ==================================================
+#&gt; Final Answer: E(X^2) - E(X)^2</code></pre>
+                <div id="linear-transformations" class="section level3">
+                <h3>Linear Transformations</h3>
+                <p>See polynomial expansion for <span
+                class="math inline">Var(<em>a</em><em>X</em> + <em>b</em>)</span>:</p>
+                <div class="sourceCode" id="cb11"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">derive.Var</span>(a <span class="sc">*</span> X <span class="sc">+</span> b)</span></code></pre></div>
+                <pre><code>#&gt; Derivation of: Var(a * X + b) 
+#&gt; ==================================================
+#&gt; 
+#&gt; Step 1: Starting expression
+#&gt;   Rule: Input
+#&gt;   =&gt; Var(a * X + b)
+#&gt; 
+#&gt; Step 2: Apply variance definition
+#&gt;   Rule: Var[X] = E[X²] - E[X]²
+#&gt;   =&gt; E[(a * X + b)^2] - E[a * X + b]²
+#&gt; 
+#&gt; Step 3: Expand polynomial
+#&gt;   Rule: (a + b)² = a² + 2ab + b²
+#&gt;   =&gt; E[(a * X)^2 + 2 * (a * X * b) + b^2] - E[a * X + b]²
+#&gt; 
+#&gt; Step 4: Compute E[X²]
+#&gt;   Rule: Apply expectation rules to X²
+#&gt;   =&gt; E((a * X)^2) + 2 * (a * E(X) * b) + b^2 - E[a * X + b]²
+#&gt; 
+#&gt; Step 5: Compute E[X]²
+#&gt;   Rule: Apply expectation rules to X, then square
+#&gt;   =&gt; E((a * X)^2) + 2 * (a * E(X) * b) + b^2 - (a * E(X) + b)^2
+#&gt; 
+#&gt; Step 6: Combine terms
+#&gt;   Rule: E[X²] - E[X]²
+#&gt;   =&gt; E((a * X)^2) + 2 * (a * E(X) * b) + b^2 - (a * E(X) + b)^2
+#&gt; 
+#&gt; Step 7: Final result
+#&gt;   Rule: Done
+#&gt;   =&gt; E((a * X)^2) + 2 * (a * E(X) * b) + b^2 - (a * E(X) + b)^2
+#&gt; 
+#&gt; ==================================================
+#&gt; Final Answer: E((a * X)^2) + 2 * (a * E(X) * b) + b^2 - (a * E(X) + b)^2</code></pre>
+                </div>
+                <div id="with-defined-distribution"
+                class="section level3">
+                <h3>With Defined Distribution</h3>
+                <div class="sourceCode" id="cb13"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">derive.Var</span>(X)</span></code></pre></div>
+                <pre><code>#&gt; Derivation of: Var(X) 
+#&gt; ==================================================
+#&gt; 
+#&gt; Step 1: Starting expression
+#&gt;   Rule: Input
+#&gt;   =&gt; Var(X)
+#&gt; 
+#&gt; Step 2: Apply variance definition
+#&gt;   Rule: Var[X] = E[X²] - E[X]²
+#&gt;   =&gt; E[X^2] - E[X]²
+#&gt; 
+#&gt; Step 3: Compute E[X²]
+#&gt;   Rule: Apply expectation rules to X²
+#&gt;   =&gt; sigma^2 + mu^2 - E[X]²
+#&gt; 
+#&gt; Step 4: Compute E[X]²
+#&gt;   Rule: Apply expectation rules to X, then square
+#&gt;   =&gt; sigma^2 + mu^2 - mu^2
+#&gt; 
+#&gt; Step 5: Combine terms
+#&gt;   Rule: E[X²] - E[X]²
+#&gt;   =&gt; sigma^2 + mu^2 - mu^2
+#&gt; 
+#&gt; Step 6: Simplify
+#&gt;   Rule: Algebraic simplification
+#&gt;   =&gt; sigma^2
+#&gt; 
+#&gt; Step 7: Final result
+#&gt;   Rule: Done
+#&gt;   =&gt; sigma^2
+#&gt; 
+#&gt; ==================================================
+#&gt; Final Answer: sigma^2</code></pre>
+                <div class="sourceCode" id="cb15"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                <hr />
+                </div>
+                </div>
+                <div id="derive.cov-covariance-derivation"
+                class="section level2">
+                <h2><code>derive.Cov()</code> — Covariance
+                Derivation</h2>
+                <p>Shows covariance using <span
+                class="math inline">Cov(<em>X</em>, <em>Y</em>) = <em>E</em>[<em>X</em><em>Y</em>] − <em>E</em>[<em>X</em>]<em>E</em>[<em>Y</em>]</span>:</p>
+                <div class="sourceCode" id="cb16"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">derive.Cov</span>(X, Y)</span></code></pre></div>
+                <pre><code>#&gt; Derivation of: Cov(X, Y) 
+#&gt; ==================================================
+#&gt; 
+#&gt; Step 1: Starting expression
+#&gt;   Rule: Input
+#&gt;   =&gt; Cov(X, Y)
+#&gt; 
+#&gt; Step 2: Apply covariance definition
+#&gt;   Rule: Cov[X, Y] = E[XY] - E[X]E[Y]
+#&gt;   =&gt; E[X * Y] - E[X] * E[Y]
+#&gt; 
+#&gt; Step 3: Compute E[XY]
+#&gt;   Rule: Apply expectation rules to product
+#&gt;   =&gt; E(X * Y) - E[X] * E[Y]
+#&gt; 
+#&gt; Step 4: Compute E[X] * E[Y]
+#&gt;   Rule: Apply expectation rules to each variable
+#&gt;   =&gt; E(X * Y) - E(X) * E(Y)
+#&gt; 
+#&gt; Step 5: Combine terms
+#&gt;   Rule: E[XY] - E[X]E[Y]
+#&gt;   =&gt; E(X * Y) - E(X) * E(Y)
+#&gt; 
+#&gt; Step 6: Final result
+#&gt;   Rule: Done
+#&gt;   =&gt; E(X * Y) - E(X) * E(Y)
+#&gt; 
+#&gt; ==================================================
+#&gt; Final Answer: E(X * Y) - E(X) * E(Y)</code></pre>
+                <hr />
+                </div>
+                <div id="understanding-the-output"
+                class="section level2">
+                <h2>Understanding the Output</h2>
+                <p>Each derivation returns a <code>derivation</code>
+                object:</p>
+                <div class="line-block">Component | Description |</div>
+                <p>derive.Cov(X, X + Y) ```</p>
+                <p>It correctly identifies that <span
+                class="math inline">Cov(<em>X</em>, <em>X</em>)</span>
+                becomes <span
+                class="math inline">Var(<em>X</em>)</span>.</p>
+                <hr />
+                </div>
+                <div id="why-use-this" class="section level2">
+                <h2>Why Use This?</h2>
+                <ol style="list-style-type: decimal">
+                <li><strong>Debugging Math</strong>: If your
+                hand-derived result doesn’t match your simulation, use
+                this to find the line where you made a mistake.</li>
+                <li><strong>Learning</strong>: It helps build intuition
+                for <em>why</em> certain terms cancel out.</li>
+                <li><strong>Documentation</strong>: You can copy-paste
+                these derivations directly into your homework or
+                reports.</li>
+                </ol>
+                <div class="page-nav">
+                <p><a href="distributions.html" class="page-nav-item prev">
+                <span class="page-nav-label">Previous</span> <span
+                class="page-nav-title">← Distributions</span> </a>
+                <a href="moments.html" class="page-nav-item next"> <span
+                class="page-nav-label">Next</span> <span
+                class="page-nav-title">Moments &amp; Statistics →</span>
+                </a></p>
+                </div>
+                </div>
+            </article>
+        </main>
+
+        <!-- On This Page TOC -->
+        <aside class="toc-sidebar">
+            <nav class="toc-container">
+                <div class="toc-heading">On This Page</div>
+                <ul class="toc-list">
+                    <!-- Generated dynamically by layout.js -->
+                </ul>
+            </nav>
+        </aside>
+    </div>
+
+    <!-- Layout JavaScript -->
+    <script src="layout.js"></script>
+    
+    <!-- MathJax for equations -->
+    <script>
+        (function () {
+            var script = document.createElement("script");
+            script.type = "text/javascript";
+            script.src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+            document.getElementsByTagName("head")[0].appendChild(script);
+        })();
+    </script>
+    
+    </body>
+</html>

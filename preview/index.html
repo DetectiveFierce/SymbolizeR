@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SymbolizeR Documentation</title>
+    <meta name="description" content="Symbolic probability and Bayesian calculus for R. Documentation and tutorials for SymbolizeR.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dist/output.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <button class="mobile-menu-btn" aria-label="Toggle Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <a href="index.html" class="header-logo">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="16" cy="16" r="12" stroke-dasharray="4 2"/>
+                <path d="M11 16c0-6 5-10 5-10s5 4 5 10-5 10-5 10-5-4-5-10z"/>
+                <circle cx="16" cy="16" r="3" fill="currentColor"/>
+            </svg>
+            SymbolizeR
+        </a>
+        <nav class="header-nav">
+            <a href="index.html">Docs</a>
+            <a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+        <button class="header-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Quick search...
+            <kbd>Ctrl K</kbd>
+        </button>
+    </header>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Layout -->
+    <div class="index-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Documentation</div>
+                <ul class="sidebar-nav">
+                    <li><a href="getting-started.html">Getting Started</a></li>
+                    <li><a href="distributions.html">Distributions</a></li>
+                    <li><a href="derivations.html">Derivations</a></li>
+                    <li><a href="moments.html">Moments & Statistics</a></li>
+                    <li><a href="calculus.html">Calculus</a></li>
+                    <li><a href="internals.html">Package Internals</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub →</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="index-content">
+            <div class="hero">
+                <h1>SymbolizeR</h1>
+                <p class="hero-subtitle">Symbolic probability and Bayesian calculus for R. Derive expectations, variances, and covariances analytically—returning formulas, not numbers.</p>
+            </div>
+
+            <div class="card-grid">
+                <a href="getting-started.html" class="card">
+                    <h2>Getting Started</h2>
+                    <p>Learn the basics of SymbolizeR conventions, expectations, and simple symbolic manipulations.</p>
+                    <span class="card-tag">Introduction</span>
+                </a>
+
+                <a href="distributions.html" class="card">
+                    <h2>Probability Distributions</h2>
+                    <p>Working with common distributions, parameter non-standard evaluation, and moment derivations.</p>
+                    <span class="card-tag">Core Features</span>
+                </a>
+
+                <a href="derivations.html" class="card">
+                    <h2>Step-by-Step Derivations</h2>
+                    <p>See exactly how SymbolizeR arrives at its results with full intermediate steps for learning and verification.</p>
+                    <span class="card-tag">Educational</span>
+                </a>
+
+                <a href="moments.html" class="card">
+                    <h2>Moments & Statistics</h2>
+                    <p>Raw moments, skewness, excess kurtosis—all computed symbolically with full polynomial simplification.</p>
+                    <span class="card-tag">Higher-Order</span>
+                </a>
+
+                <a href="calculus.html" class="card">
+                    <h2>Symbolic Calculus</h2>
+                    <p>Deep dive into differentiation and definite integration using kernel recognition for Bayesian inference.</p>
+                    <span class="card-tag">Advanced Module</span>
+                </a>
+
+                <a href="internals.html" class="card">
+                    <h2>Package Internals</h2>
+                    <p>Technical deep-dive into how SymbolizeR works: expression trees, type classification, and the expectation engine.</p>
+                    <span class="card-tag">Technical</span>
+                </a>
+            </div>
+
+            <footer class="site-footer">
+                © 2026 SymbolizeR Team. Built with R.
+            </footer>
+        </main>
+    </div>
+
+    <script src="layout.js"></script>
+</body>
+</html>

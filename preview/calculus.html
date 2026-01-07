@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Symbolic Calculus - SymbolizeR</title>
+    <meta name="description" content="Symbolic
+Calculus - SymbolizeR documentation">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="dist/output.css">
+    
+    <!-- Pandoc/Rmarkdown Syntax Highlighting Override -->
+    <style>
+        /* Reset pandoc defaults to work with our theme */
+        html { -webkit-text-size-adjust: 100%; }
+        pre > code.sourceCode { white-space: pre; position: relative; }
+        pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+        pre > code.sourceCode > span:empty { height: 1.2em; }
+        .sourceCode { overflow: visible; }
+        code.sourceCode > span { color: inherit; text-decoration: inherit; }
+        div.sourceCode { margin: 1em 0; }
+        pre.sourceCode { margin: 0; }
+        @media screen {
+            div.sourceCode { overflow: auto; }
+        }
+    </style>
+    
+        <script src="calculus_files/header-attrs-2.29/header-attrs.js"></script>
+    </head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <button class="mobile-menu-btn" aria-label="Toggle Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <a href="index.html" class="header-logo">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="16" cy="16" r="12" stroke-dasharray="4 2"/>
+                <path d="M11 16c0-6 5-10 5-10s5 4 5 10-5 10-5 10-5-4-5-10z"/>
+                <circle cx="16" cy="16" r="3" fill="currentColor"/>
+            </svg>
+            SymbolizeR
+        </a>
+        <nav class="header-nav">
+            <a href="index.html">Docs</a>
+            <a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+        <button class="header-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Quick search...
+            <kbd>Ctrl K</kbd>
+        </button>
+    </header>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Layout -->
+    <div class="docs-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Documentation</div>
+                <ul class="sidebar-nav">
+                    <li><a href="getting-started.html">Getting Started</a></li>
+                    <li><a href="distributions.html">Distributions</a></li>
+                    <li><a href="derivations.html">Derivations</a></li>
+                    <li><a href="moments.html">Moments & Statistics</a></li>
+                    <li><a href="calculus.html">Calculus</a></li>
+                    <li><a href="internals.html">Package Internals</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub →</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <article class="content-article">
+                                <h1 class="title">Symbolic Calculus</h1>
+                                
+                <div class="sourceCode" id="cb1"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(SymbolizeR)</span></code></pre></div>
+                <p>SymbolizeR provides symbolic calculus capabilities
+                for Bayesian statistical
+                computations—<strong>differentiation</strong> for
+                finding MLEs and <strong>integration</strong> for
+                normalizing posterior distributions.</p>
+                <hr />
+                <div id="symbolic-differentiation"
+                class="section level2">
+                <h2>Symbolic Differentiation</h2>
+                <p>The <code>deriv.sym()</code> function computes
+                symbolic partial derivatives. It wraps R’s
+                <code>stats::D()</code> with intelligent handling of
+                expectation operators and automatic simplification.</p>
+                <div id="basic-derivatives" class="section level3">
+                <h3>Basic Derivatives</h3>
+                <div class="sourceCode" id="cb2"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Polynomial differentiation</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">deriv.sym</span>(x<span class="sc">^</span><span class="dv">3</span>, x)</span></code></pre></div>
+                <pre><code>#&gt; 3 * x^2</code></pre>
+                <div class="sourceCode" id="cb4"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Exponential functions</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">deriv.sym</span>(<span class="fu">exp</span>(x), x)</span></code></pre></div>
+                <pre><code>#&gt; exp(x)</code></pre>
+                <div class="sourceCode" id="cb6"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Product rule applied automatically</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">deriv.sym</span>(x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(x), x)</span></code></pre></div>
+                <pre><code>#&gt; 2 * x * exp(x) + x^2 * exp(x)</code></pre>
+                </div>
+                <div id="derivatives-with-constants"
+                class="section level3">
+                <h3>Derivatives with Constants</h3>
+                <p>Constants (lowercase symbols) are handled
+                correctly:</p>
+                <div class="sourceCode" id="cb8"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># d/dx of ax + b</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">deriv.sym</span>(a <span class="sc">*</span> x <span class="sc">+</span> b, x)</span></code></pre></div>
+                <pre><code>#&gt; a</code></pre>
+                <div class="sourceCode" id="cb10"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># d/dx of exp(a*x)</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">deriv.sym</span>(<span class="fu">exp</span>(a <span class="sc">*</span> x), x)</span></code></pre></div>
+                <pre><code>#&gt; exp(a * x) * a</code></pre>
+                </div>
+                <div id="handling-e-as-constants"
+                class="section level3">
+                <h3>Handling E() as Constants</h3>
+                <p>A unique feature: <code>E(Y)</code> expressions
+                (expectations of other random variables) are treated as
+                constants during differentiation:</p>
+                <div class="sourceCode" id="cb12"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="co"># d/dx of x * E(Y) — treats E(Y) as constant</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">deriv.sym</span>(x <span class="sc">*</span> <span class="fu">E</span>(Y), x)</span></code></pre></div>
+                <pre><code>#&gt; E(Y)</code></pre>
+                <div class="sourceCode" id="cb14"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># More complex example</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">deriv.sym</span>(x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">E</span>(Y) <span class="sc">+</span> <span class="fu">E</span>(Z), x)</span></code></pre></div>
+                <pre><code>#&gt; 2 * x * E(Y)</code></pre>
+                <p>This enables computing derivatives in contexts where
+                expectations appear as known quantities.</p>
+                <hr />
+                </div>
+                </div>
+                <div id="symbolic-integration" class="section level2">
+                <h2>Symbolic Integration</h2>
+                <p>The <code>integrate.sym()</code> function evaluates
+                definite integrals via <strong>kernel
+                recognition</strong>. Instead of general-purpose
+                integration, it matches your integrand against known
+                probability distribution kernels.</p>
+                <div id="supported-kernels" class="section level3">
+                <h3>Supported Kernels</h3>
+                <table>
+                <colgroup>
+                <col width="24%" />
+                <col width="24%" />
+                <col width="27%" />
+                <col width="24%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Kernel</th>
+                <th>Domain</th>
+                <th>Pattern</th>
+                <th>Result</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td><strong>Gamma</strong></td>
+                <td><span class="math inline">(0, ∞)</span></td>
+                <td><span
+                class="math inline"><em>x</em><sup><em>A</em> − 1</sup><em>e</em><sup>−<em>B</em><em>x</em></sup></span></td>
+                <td><span
+                class="math inline"><em>Γ</em>(<em>A</em>)/<em>B</em><sup><em>A</em></sup></span></td>
+                </tr>
+                <tr class="even">
+                <td><strong>Gaussian</strong></td>
+                <td><span class="math inline">(−∞, ∞)</span></td>
+                <td><span
+                class="math inline"><em>e</em><sup>−<em>A</em><em>x</em><sup>2</sup> + <em>B</em><em>x</em></sup></span></td>
+                <td><span class="math inline">$\sqrt{\pi/A} \cdot
+                e^{B^2/(4A)}$</span></td>
+                </tr>
+                <tr class="odd">
+                <td><strong>Beta</strong></td>
+                <td><span class="math inline">(0, 1)</span></td>
+                <td><span
+                class="math inline"><em>x</em><sup><em>A</em> − 1</sup>(1 − <em>x</em>)<sup><em>B</em> − 1</sup></span></td>
+                <td><span
+                class="math inline"><em>B</em>(<em>A</em>, <em>B</em>)</span></td>
+                </tr>
+                </tbody>
+                </table>
+                </div>
+                <div id="gamma-kernel-examples" class="section level3">
+                <h3>Gamma Kernel Examples</h3>
+                <div class="sourceCode" id="cb16"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Basic Gamma integral</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <pre><code>#&gt; gamma(2 + 1)/(--1)^(2 + 1)</code></pre>
+                <div class="sourceCode" id="cb18"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># With rate parameter</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <pre><code>#&gt; gamma(2 + 1)/(--lambda)^(2 + 1)</code></pre>
+                <div class="sourceCode" id="cb20"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Simple exponential (A = 1)</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(<span class="fu">exp</span>(<span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <pre><code>#&gt; 1/--1</code></pre>
+                </div>
+                <div id="gaussian-kernel-examples"
+                class="section level3">
+                <h3>Gaussian Kernel Examples</h3>
+                <div class="sourceCode" id="cb22"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="co"># Standard Gaussian integral</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(<span class="fu">exp</span>(<span class="sc">-</span>x<span class="sc">^</span><span class="dv">2</span>), x, <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <pre><code>#&gt; sqrt(pi/0) * exp(0)</code></pre>
+                <div class="sourceCode" id="cb24"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="co"># With coefficient</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(<span class="fu">exp</span>(<span class="sc">-</span>a <span class="sc">*</span> x<span class="sc">^</span><span class="dv">2</span>), x, <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <pre><code>#&gt; sqrt(pi/0) * exp(0)</code></pre>
+                <div class="sourceCode" id="cb26"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="co"># Full quadratic with linear term</span></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(<span class="fu">exp</span>(<span class="sc">-</span>A <span class="sc">*</span> mu<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> B <span class="sc">*</span> mu), mu, <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <pre><code>#&gt; sqrt(pi/0) * exp(0)</code></pre>
+                </div>
+                <div id="beta-kernel-examples" class="section level3">
+                <h3>Beta Kernel Examples</h3>
+                <div class="sourceCode" id="cb28"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="co"># Simple Beta</span></span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x <span class="sc">*</span> (<span class="dv">1</span><span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="dv">1</span>)</span></code></pre></div>
+                <pre><code>#&gt; beta(1 + 1, 1 + 1)</code></pre>
+                <div class="sourceCode" id="cb30"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="co"># With explicit powers</span></span>
+<span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> (<span class="dv">1</span><span class="sc">-</span>x)<span class="sc">^</span><span class="dv">3</span>, x, <span class="dv">0</span>, <span class="dv">1</span>)</span></code></pre></div>
+                <pre><code>#&gt; beta(2 + 1, 3 + 1)</code></pre>
+                <div class="sourceCode" id="cb32"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="co"># Symbolic parameters</span></span>
+<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x<span class="sc">^</span>(alpha <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">*</span> (<span class="dv">1</span><span class="sc">-</span>x)<span class="sc">^</span>(beta <span class="sc">-</span> <span class="dv">1</span>), x, <span class="dv">0</span>, <span class="dv">1</span>)</span></code></pre></div>
+                <pre><code>#&gt; beta((alpha - 1) + 1, (beta - 1) + 1)</code></pre>
+                </div>
+                <div id="constant-factoring" class="section level3">
+                <h3>Constant Factoring</h3>
+                <p>Constants are automatically separated and
+                preserved:</p>
+                <div class="sourceCode" id="cb34"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a><span class="co"># The &#39;a&#39; is extracted from the integrand</span></span>
+<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(a <span class="sc">*</span> x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <pre><code>#&gt; a * (gamma(2 + 1)/(--1)^(2 + 1))</code></pre>
+                <hr />
+                </div>
+                </div>
+                <div id="bayesian-applications" class="section level2">
+                <h2>Bayesian Applications</h2>
+                <p>These tools shine in Bayesian inference, particularly
+                for deriving normalizing constants.</p>
+                <div id="beta-binomial-conjugacy"
+                class="section level3">
+                <h3>Beta-Binomial Conjugacy</h3>
+                <p>For <strong>Beta prior</strong> with <strong>Binomial
+                likelihood</strong>, the posterior kernel is: <span
+                class="math display"><em>p</em>(<em>θ</em>|<em>x</em>) ∝ <em>θ</em><sup><em>α</em> + <em>k</em> − 1</sup>(1 − <em>θ</em>)<sup><em>β</em> + <em>n</em> − <em>k</em> − 1</sup></span>
+                Integration is much harder than differentiation, but
+                it’s essential for getting from a PDF to an
+                expectation.</p>
+                <p><code>integrate.sym()</code> handles polynomial
+                integration and standard definite integrals.</p>
+                <div class="sourceCode" id="cb36"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="co"># Basic polynomial</span></span>
+<span id="cb36-2"><a href="#cb36-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(<span class="dv">3</span> <span class="sc">*</span> x<span class="sc">^</span><span class="dv">2</span>, <span class="st">&quot;x&quot;</span>)</span></code></pre></div>
+                <pre><code>#&gt; Integrate(3 * x^2, x, -Inf, Inf)</code></pre>
+                </div>
+                <div id="definite-integrals-and-bounds"
+                class="section level3">
+                <h3>Definite Integrals and Bounds</h3>
+                <p>Most probability questions are about definite
+                integrals—area under the curve.</p>
+                <div class="sourceCode" id="cb38"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="co"># Integral of x from 0 to 1</span></span>
+<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x, <span class="st">&quot;x&quot;</span>, <span class="dv">0</span>, <span class="dv">1</span>)</span></code></pre></div>
+                <pre><code>#&gt; beta(1 + 1, 1)</code></pre>
+                <p>This is how the <code>E(X)</code> engine actually
+                works for continuous variables under the hood. It sets
+                up the integral <span
+                class="math inline">∫<sub>−∞</sub><sup>∞</sup><em>x</em> ⋅ <em>f</em>(<em>x</em>)<em>d</em><em>x</em></span>
+                and solves it.</p>
+                <hr />
+                </div>
+                </div>
+                <div id="whats-next" class="section level2">
+                <h2>What’s Next?</h2>
+                <p>You now have the full toolkit: 1. <strong><a
+                href="distributions.html">Distributions</a></strong>
+                define your variables. 2. <strong><a
+                href="getting-started.html">Expectations</a></strong>
+                simplify linear combinations. 3. <strong><a
+                href="calculus.html">Calculus</a></strong> lets you
+                build the definitions from scratch.</p>
+                <p>If you are curious about exactly <em>how</em> R
+                distinguishes between a random variable <code>X</code>
+                and a constant <code>a</code> without type declarations,
+                check out the final section on
+                <strong>Internals</strong>.</p>
+                <div class="page-nav">
+                <p><a href="moments.html" class="page-nav-item prev">
+                <span class="page-nav-label">Previous</span> <span
+                class="page-nav-title">← Moments &amp; Statistics</span>
+                </a>
+                <a href="internals.html" class="page-nav-item next">
+                <span class="page-nav-label">Next</span> <span
+                class="page-nav-title">Package Internals →</span>
+                </a></p>
+                </div>
+                </div>
+            </article>
+        </main>
+
+        <!-- On This Page TOC -->
+        <aside class="toc-sidebar">
+            <nav class="toc-container">
+                <div class="toc-heading">On This Page</div>
+                <ul class="toc-list">
+                    <!-- Generated dynamically by layout.js -->
+                </ul>
+            </nav>
+        </aside>
+    </div>
+
+    <!-- Layout JavaScript -->
+    <script src="layout.js"></script>
+    
+    <!-- MathJax for equations -->
+    <script>
+        (function () {
+            var script = document.createElement("script");
+            script.type = "text/javascript";
+            script.src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+            document.getElementsByTagName("head")[0].appendChild(script);
+        })();
+    </script>
+    
+    </body>
+</html>

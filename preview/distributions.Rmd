@@ -1,0 +1,255 @@
+---
+title: "Working with Distributions"
+output: 
+  html_document:
+    template: template.html
+    self_contained: false
+    toc: false
+    theme: null
+    highlight: pygments
+    mathjax: null
+vignette: >
+  %\VignetteIndexEntry{Working with Distributions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(SymbolizeR)
+```
+
+Generic random variables like `X` are great for general proofs. But eventually, you need to get specific.
+
+Calculating higher moments by hand—solving integrals like $\int x^4 \phi(x) \, dx$ where $\phi$ is the Normal PDF—is painful. It's exactly the kind of thing computers should do for us.
+
+SymbolizeR acts as a **smart registry** for probability distributions. You tell it what `X` is, and it handles the moment lookups for you.
+
+---
+
+## Defining Your Model
+
+You connect a variable to a distribution using the `define()` function and standard R formula syntax:
+
+```{r define-basic}
+define(X ~ Normal(mu, sigma))
+```
+
+Now, `X` isn't just "some variable." It's a Normal random variable. Ask for its expectation, and you won't get `E(X)` back—you'll get the actual parameter:
+
+```{r moments-lookup}
+E(X)      # It knows this is mu
+E(X^2)    # It knows the second moment is sigma^2 + mu^2
+```
+
+This is incredibly useful for verifying answers on homework or double-checking your own derivations.
+
+---
+
+## The Catalog of Known Distributions
+
+We've taught SymbolizeR about most of the standard distributions you'll encounter in introductory and intermediate statistics.
+
+### Continuous Families
+
+For continuous variables, we support:
+
+| Family | Syntax | Notes |
+|--------|--------|-------|
+| **Normal** | `Normal(μ, σ)` | The bread and butter of statistics. |
+| **Uniform** | `Uniform(a, b)` | Great for simple bounds. |
+| **Exponential** | `Exponential(λ)` | Memoryless waiting times. |
+| **Gamma** | `Gamma(α, β)` | Shape-rate parameterization. |
+| **InvGamma** | `InvGamma(α, β)` | Conjugate prior for variance. |
+| **Beta** | `Beta(α, β)` | Bounded between 0 and 1. |
+| **LogNormal** | `LogNormal(μ, σ)` | Log of X is Normal. |
+| **Weibull** | `Weibull(k, λ)` | Shape-scale; reliability analysis. |
+| **Chi-squared** | `ChiSq(df)` | Sum of squared normals. |
+| **Student's t** | `StudentT(df)` | Heavy-tailed alternative to Normal. |
+
+### Discrete Families
+
+We haven't forgotten about counts:
+
+| Family | Syntax | Notes |
+|--------|--------|-------|
+| **Binomial** | `Binomial(n, p)` | Successes in n trials. |
+| **Poisson** | `Poisson(λ)` | Rare events. |
+| **Geometric** | `Geometric(p)` | Trials until first success. |
+| **NegBinomial** | `NegBinomial(r, p)` | Trials until r successes. |
+
+Let's see a few in action. Notice how we use `clear.definitions()` to reset the slate between examples so variables don't clash.
+
+```{r dist-examples}
+clear.definitions()
+
+# Working with waiting times?
+define(T ~ Exponential(lambda))
+E(T)
+E(T^2) # Second moment is 2/lambda^2
+
+# Counting logic?
+define(X ~ Binomial(n, p))
+E(X)
+```
+
+---
+
+## It Handles Variance, Too
+
+Since `Var(X)` is just a wrapper for moment calculations, defining a distribution makes `Var()` work instantly:
+
+```{r variance}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+# This simplifies all the way down to the parameter
+Var(X)
+```
+
+---
+
+## Generic Moments: The `moment()` Function
+
+Sometimes you need higher-order moments beyond just E[X] and E[X²]. The `moment(X, n)` function computes E[Xⁿ]:
+
+```{r moments}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+moment(X, 1)  # First moment = mu
+moment(X, 2)  # Second moment = sigma^2 + mu^2
+moment(X, 3)  # Third moment
+moment(X, 4)  # Fourth moment
+```
+
+---
+
+## Higher-Order Statistics
+
+### Skewness
+
+Skewness measures asymmetry. The `Skewness()` function computes the standardized third moment:
+
+```{r skewness}
+Skewness(X)  # Returns symbolic expression
+```
+
+### Kurtosis
+
+Kurtosis measures tail weight. By default, we return **excess kurtosis** (subtracts 3):
+
+```{r kurtosis}
+Kurtosis(X)  # Excess kurtosis
+
+# For raw kurtosis, set excess = FALSE:
+Kurtosis(X, excess = FALSE)
+```
+
+---
+
+## New Distributions: Chi-squared and Student's t
+
+```{r chisq-t}
+clear.definitions()
+
+# Chi-squared with k degrees of freedom
+define(X ~ ChiSq(k))
+E(X)      # k
+E(X^2)    # k^2 + 2*k
+
+# Student's t with nu degrees of freedom
+clear.definitions()
+define(T ~ StudentT(nu))
+E(T)      # 0 (for nu > 1)
+E(T^2)    # nu / (nu - 2) (for nu > 2)
+```
+
+---
+
+## Moment Generating Functions
+
+This is a "hidden super-power" of the package. If you ask for the expectation of an exponential, $E[e^{tX}]$, that's literally the definition of the **Moment Generating Function (MGF)**.
+
+SymbolizeR recognizes this pattern:
+
+```{r mgf}
+clear.definitions()
+
+# What's the MGF of a Poisson distribution?
+define(N ~ Poisson(lambda))
+E(exp(t * N))
+```
+
+And there it is: $M_N(t) = e^{\lambda(e^t - 1)}$. No derivation required.
+
+---
+
+## Mixing Variables
+
+You can mix generic variables with defined ones. This is great for "semi-parametric" problems where you know the distribution of errors but not the signal.
+
+```{r multiple}
+clear.definitions()
+define(Epsilon ~ Normal(0, sigma))
+
+# Y = Signal + Noise
+# We don't define Signal, so it stays generic 'E(Signal)'
+E(Signal + Epsilon)
+```
+
+Since `E[Epsilon]` is 0, it vanishes, leaving just `E(Signal)`.
+
+---
+
+## Managing Your Definitions
+
+Because `define()` changes global state for the session, you sometimes need to clean up.
+
+- `undefine("X")` removes a single definition.
+- `clear.definitions()` wipes everything.
+
+```{r clear}
+clear.definitions()
+E(X)    # Back to being a generic symbol
+```
+
+---
+
+## Proof of the Sample Mean
+
+Let's put it all together to prove that the sample mean $\bar{X}$ is an unbiased estimator for $\mu$.
+
+1. We have three i.i.d. observations.
+2. We want the expectation of their average.
+
+```{r sample-mean}
+clear.definitions()
+define(X1 ~ Normal(mu, sigma))
+define(X2 ~ Normal(mu, sigma))
+define(X3 ~ Normal(mu, sigma))
+
+# The sample mean is (X1 + X2 + X3) / 3
+E( (X1 + X2 + X3) / 3 )
+```
+
+It simplifies to `mu`. Proof complete.
+
+<div class="page-nav">
+  <a href="getting-started.html" class="page-nav-item prev">
+    <span class="page-nav-label">Previous</span>
+    <span class="page-nav-title">← Getting Started</span>
+  </a>
+  <a href="derivations.html" class="page-nav-item next">
+    <span class="page-nav-label">Next</span>
+    <span class="page-nav-title">Derivations →</span>
+  </a>
+</div>
+

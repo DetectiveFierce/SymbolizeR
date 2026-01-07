@@ -1,0 +1,56 @@
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+</button>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="sidebar" id="sidebar">
+  <h2>Vignettes</h2>
+  <ul>
+    <li><a href="getting-started.html">1. Getting Started</a></li>
+    <li><a href="distributions.html">2. Distributions</a></li>
+    <li><a href="derivations.html">3. Derivations</a></li>
+    <li><a href="calculus.html">4. Calculus</a></li>
+  </ul>
+  <hr>
+  <a href="index.html" style="font-size: 0.9rem; opacity: 0.8; margin-top: 2rem; display: block;">← Back to Home</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const toggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  function toggleSidebar() {
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+    
+    // Lock body scroll on mobile when sidebar is open
+    if (window.innerWidth <= 768) {
+      document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+    }
+  }
+  
+  toggle.addEventListener('click', toggleSidebar);
+  overlay.addEventListener('click', toggleSidebar);
+
+  // Highlight active link
+  const currentPath = window.location.pathname.split('/').pop();
+  const sidebarLinks = document.querySelectorAll('.sidebar a');
+  sidebarLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href === currentPath || (currentPath === '' && href === 'index.html')) {
+      link.classList.add('active');
+    }
+  });
+
+  // Handle window resize logic
+  window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) {
+      document.body.style.overflow = ''; // Reset scroll lock
+      overlay.classList.remove('active'); // Hide overlay on desktop
+    }
+  });
+});
+</script>

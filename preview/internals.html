@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Package Internals - SymbolizeR</title>
+    <meta name="description" content="Package
+Internals - SymbolizeR documentation">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="dist/output.css">
+    
+    <!-- Pandoc/Rmarkdown Syntax Highlighting Override -->
+    <style>
+        /* Reset pandoc defaults to work with our theme */
+        html { -webkit-text-size-adjust: 100%; }
+        pre > code.sourceCode { white-space: pre; position: relative; }
+        pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+        pre > code.sourceCode > span:empty { height: 1.2em; }
+        .sourceCode { overflow: visible; }
+        code.sourceCode > span { color: inherit; text-decoration: inherit; }
+        div.sourceCode { margin: 1em 0; }
+        pre.sourceCode { margin: 0; }
+        @media screen {
+            div.sourceCode { overflow: auto; }
+        }
+    </style>
+    
+        <script src="internals_files/header-attrs-2.29/header-attrs.js"></script>
+    </head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <button class="mobile-menu-btn" aria-label="Toggle Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <a href="index.html" class="header-logo">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="16" cy="16" r="12" stroke-dasharray="4 2"/>
+                <path d="M11 16c0-6 5-10 5-10s5 4 5 10-5 10-5 10-5-4-5-10z"/>
+                <circle cx="16" cy="16" r="3" fill="currentColor"/>
+            </svg>
+            SymbolizeR
+        </a>
+        <nav class="header-nav">
+            <a href="index.html">Docs</a>
+            <a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+        <button class="header-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Quick search...
+            <kbd>Ctrl K</kbd>
+        </button>
+    </header>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Layout -->
+    <div class="docs-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Documentation</div>
+                <ul class="sidebar-nav">
+                    <li><a href="getting-started.html">Getting Started</a></li>
+                    <li><a href="distributions.html">Distributions</a></li>
+                    <li><a href="derivations.html">Derivations</a></li>
+                    <li><a href="moments.html">Moments & Statistics</a></li>
+                    <li><a href="calculus.html">Calculus</a></li>
+                    <li><a href="internals.html">Package Internals</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub →</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <article class="content-article">
+                                <h1 class="title">Package Internals</h1>
+                                
+                <p>This vignette provides a <strong>technical
+                deep-dive</strong> into SymbolizeR’s architecture. It
+                explains how expressions are parsed, transformed, and
+                simplified internally.</p>
+                <div class="sourceCode" id="cb1"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(SymbolizeR)</span></code></pre></div>
+                <hr />
+                <div id="architecture-overview" class="section level2">
+                <h2>Architecture Overview</h2>
+                <p>SymbolizeR is built around <strong>R’s native
+                expression tree representation</strong>. The core
+                insight is that unevaluated R code (captured via
+                <code>substitute()</code> or <code>quote()</code>) is a
+                tree structure that we can traverse and transform.</p>
+                <pre><code>User Call: E(a * X + b)
+    │
+    ▼
+┌────────────────────────────┐
+│  Expression Tree Capture   │  ← substitute(expr) captures unevaluated AST
+└────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────┐
+│  Type Classification       │  ← classify.type() distinguishes RV/const/number
+└────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────┐
+│  Recursive Transformation  │  ← expect.recursive() applies linearity rules
+└────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────┐
+│  Distribution Lookup       │  ← get.first.moment() substitutes known E[X]
+└────────────────────────────┘
+    │
+    ▼
+┌────────────────────────────┐
+│  Expression Simplification │  ← simplify.expr() removes identity elements
+└────────────────────────────┘
+    │
+    ▼
+Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))</code></pre>
+                <hr />
+                </div>
+                <div id="file-organization" class="section level2">
+                <h2>File Organization</h2>
+                <p>The R source files are numbered by dependency
+                order:</p>
+                <table>
+                <colgroup>
+                <col width="40%" />
+                <col width="60%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>File</th>
+                <th>Purpose</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td><code>00_utils.R</code></td>
+                <td>Core utilities: <code>classify.type</code>,
+                <code>ensure.expression</code>,
+                <code>expand.poly</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>01_internal_expect.R</code></td>
+                <td>Expectation engine:
+                <code>expect.recursive</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>02_internal_simplify.R</code></td>
+                <td>Simplification: <code>simplify.expr</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>03_user_wrappers.R</code></td>
+                <td>Public API: <code>E()</code>, <code>Var()</code>,
+                <code>Cov()</code>, <code>derive.*()</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>04_distributions.R</code></td>
+                <td>Distribution registry: <code>define()</code>, moment
+                getters, independence</td>
+                </tr>
+                <tr class="even">
+                <td><code>05_calculus.R</code></td>
+                <td>Symbolic differentiation and integration</td>
+                </tr>
+                <tr class="odd">
+                <td><code>06_latex.R</code></td>
+                <td>LaTeX conversion: <code>to.latex()</code></td>
+                </tr>
+                </tbody>
+                </table>
+                <hr />
+                </div>
+                <div id="expression-trees-in-r" class="section level2">
+                <h2>Expression Trees in R</h2>
+                <p>R expressions are <strong>abstract syntax trees
+                (ASTs)</strong>. Every unevaluated call is a list-like
+                structure:</p>
+                <div class="sourceCode" id="cb3"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Capture an unevaluated expression</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>expr <span class="ot">&lt;-</span> <span class="fu">quote</span>(a <span class="sc">*</span> X <span class="sc">+</span> b)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># The tree structure</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">is.call</span>(expr)   <span class="co"># TRUE - it&#39;s a call object</span></span></code></pre></div>
+                <pre><code>#&gt; [1] TRUE</code></pre>
+                <div class="sourceCode" id="cb5"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># First element is the operator</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>expr[[<span class="dv">1</span>]]       <span class="co"># `+` (the function being called)</span></span></code></pre></div>
+                <pre><code>#&gt; `+`</code></pre>
+                <div class="sourceCode" id="cb7"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Remaining elements are arguments</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>expr[[<span class="dv">2</span>]]       <span class="co"># a * X (left operand - itself a call)</span></span></code></pre></div>
+                <pre><code>#&gt; a * X</code></pre>
+                <div class="sourceCode" id="cb9"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>expr[[<span class="dv">3</span>]]       <span class="co"># b (right operand - a symbol)</span></span></code></pre></div>
+                <pre><code>#&gt; b</code></pre>
+                <div id="tree-visualization" class="section level3">
+                <h3>Tree Visualization</h3>
+                <p>For <code>a * X + b</code>, the AST looks like:</p>
+                <pre><code>      (+)
+     /   \
+   (*)    b
+  /   \
+ a     X</code></pre>
+                <p>We traverse this tree recursively, transforming nodes
+                according to mathematical rules.</p>
+                <hr />
+                </div>
+                </div>
+                <div id="type-classification-00_utils.r"
+                class="section level2">
+                <h2>Type Classification (<code>00_utils.R</code>)</h2>
+                <p>The <code>classify.type()</code> function determines
+                how to treat each node:</p>
+                <table>
+                <thead>
+                <tr class="header">
+                <th>Return Value</th>
+                <th>Condition</th>
+                <th>Example</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td><code>"number"</code></td>
+                <td><code>is.numeric(sym)</code></td>
+                <td><code>5</code>, <code>2.5</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>"rv"</code></td>
+                <td>Symbol starting with uppercase</td>
+                <td><code>X</code>, <code>Y</code>,
+                <code>Normal</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>"const"</code></td>
+                <td>Symbol starting with lowercase</td>
+                <td><code>a</code>, <code>mu</code>,
+                <code>sigma</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>"call"</code></td>
+                <td>Complex expression</td>
+                <td><code>a * X</code>, <code>X + Y</code></td>
+                </tr>
+                </tbody>
+                </table>
+                <div class="sourceCode" id="cb12"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">classify.type</span>(<span class="fu">quote</span>(X))       <span class="co"># &quot;rv&quot;</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">classify.type</span>(<span class="fu">quote</span>(mu))      <span class="co"># &quot;const&quot;</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="fu">classify.type</span>(<span class="dv">5</span>)              <span class="co"># &quot;number&quot;</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="fu">classify.type</span>(<span class="fu">quote</span>(a <span class="sc">*</span> X))   <span class="co"># &quot;call&quot;</span></span></code></pre></div>
+                <p>This classification drives all downstream behavior:
+                constants pass through unchanged, random variables get
+                wrapped in <code>E()</code>, and nested calls
+                recurse.</p>
+                <hr />
+                </div>
+                <div id="the-expectation-engine-01_internal_expect.r"
+                class="section level2">
+                <h2>The Expectation Engine
+                (<code>01_internal_expect.R</code>)</h2>
+                <p>The <code>expect.recursive()</code> function walks
+                the expression tree, applying:</p>
+                <p><span
+                class="math display"><em>E</em>[<em>a</em><em>X</em> + <em>b</em>] = <em>a</em><em>E</em>[<em>X</em>] + <em>b</em>   <em>E</em>[<em>X</em> + <em>Y</em>] = <em>E</em>[<em>X</em>] + <em>E</em>[<em>Y</em>]</span></p>
+                <div id="algorithm-pseudocode" class="section level3">
+                <h3>Algorithm Pseudocode</h3>
+                <pre><code>expect.recursive(expr):
+    if expr is numeric:
+        return expr
+    
+    if expr is symbol:
+        if lowercase (constant):
+            return expr
+        if uppercase (RV):
+            if has known distribution:
+                return first_moment
+            else:
+                return E(expr)
+    
+    if expr is call:
+        op = operator of expr
+        
+        if op is &#39;+&#39; or &#39;-&#39;:
+            return op(expect.recursive(left), expect.recursive(right))
+        
+        if op is &#39;*&#39;:
+            classify both operands
+            if const * RV:
+                return const * expect.recursive(RV)
+            if RV * RV:
+                if independent:
+                    return expect.recursive(left) * expect.recursive(right)
+                else:
+                    return E(left * right)  # cannot simplify
+            ...</code></pre>
+                </div>
+                <div id="handling-products" class="section level3">
+                <h3>Handling Products</h3>
+                <p>The trickiest case is multiplication involving random
+                variables:</p>
+                <div class="sourceCode" id="cb14"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># Constant * RV: factor out constant</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">E</span>(a <span class="sc">*</span> X)</span></code></pre></div>
+                <pre><code>#&gt; a * E(X)</code></pre>
+                <div class="sourceCode" id="cb16"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># RV * RV without independence: cannot factor</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="fu">E</span>(X <span class="sc">*</span> Y)</span></code></pre></div>
+                <pre><code>#&gt; E(X * Y)</code></pre>
+                <div class="sourceCode" id="cb18"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># With independence declared:</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="fu">assume.independent</span>(X, Y)</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="fu">E</span>(X <span class="sc">*</span> Y)</span></code></pre></div>
+                <pre><code>#&gt; E(X) * E(Y)</code></pre>
+                <div class="sourceCode" id="cb20"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="fu">clear.independence</span>()</span></code></pre></div>
+                <hr />
+                </div>
+                </div>
+                <div
+                id="expression-simplification-02_internal_simplify.r"
+                class="section level2">
+                <h2>Expression Simplification
+                (<code>02_internal_simplify.R</code>)</h2>
+                <p>After transformation, <code>simplify.expr()</code>
+                cleans up identity operations:</p>
+                <table>
+                <thead>
+                <tr class="header">
+                <th>Pattern</th>
+                <th>Simplifies To</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td><code>x + 0</code></td>
+                <td><code>x</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>0 + x</code></td>
+                <td><code>x</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>x * 1</code></td>
+                <td><code>x</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>x * 0</code></td>
+                <td><code>0</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>x - 0</code></td>
+                <td><code>x</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>0 / x</code></td>
+                <td><code>0</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>x^0</code></td>
+                <td><code>1</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>x^1</code></td>
+                <td><code>x</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>E(constant)</code></td>
+                <td><code>constant</code></td>
+                </tr>
+                </tbody>
+                </table>
+                <p>The simplifier also recurses into nested expressions,
+                making multiple passes when needed:</p>
+                <div class="sourceCode" id="cb21"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="co"># Internal call (not exported)</span></span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="fu">simplify.expr</span>(<span class="fu">quote</span>(x <span class="sc">+</span> <span class="dv">0</span>))    <span class="co"># x</span></span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="fu">simplify.expr</span>(<span class="fu">quote</span>(<span class="dv">1</span> <span class="sc">*</span> <span class="fu">E</span>(a))) <span class="co"># a (E of constant becomes constant)</span></span></code></pre></div>
+                <hr />
+                </div>
+                <div id="polynomial-expansion-00_utils.r"
+                class="section level2">
+                <h2>Polynomial Expansion (<code>00_utils.R</code>)</h2>
+                <p>The <code>expand.poly()</code> function handles
+                algebraic expansion for variance/covariance
+                calculations:</p>
+                <div class="sourceCode" id="cb22"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="co"># Variance needs (aX + b)^2 expanded</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="fu">Var</span>(a <span class="sc">*</span> X <span class="sc">+</span> b)</span></code></pre></div>
+                <pre><code>#&gt; E((a * X)^2) + 2 * (a * E(X) * b) + b^2 - (a * E(X) + b)^2</code></pre>
+                <p>Internally, <code>expand.poly()</code> applies:</p>
+                <p><span
+                class="math display">(<em>A</em> + <em>B</em>)<sup>2</sup> = <em>A</em><sup>2</sup> + 2<em>A</em><em>B</em> + <em>B</em><sup>2</sup></span>
+                <span
+                class="math display">(<em>A</em> ⋅ <em>B</em>)<sup><em>n</em></sup> = <em>A</em><sup><em>n</em></sup> ⋅ <em>B</em><sup><em>n</em></sup></span></p>
+                <p>And distributes multiplication over addition:</p>
+                <p><span
+                class="math display"><em>A</em> ⋅ (<em>B</em> + <em>C</em>) = <em>A</em> ⋅ <em>B</em> + <em>A</em> ⋅ <em>C</em></span></p>
+                <p>This expansion happens <strong>before</strong> the
+                expectation engine runs, so <code>E()</code> sees
+                individual terms rather than parenthesized powers.</p>
+                <hr />
+                </div>
+                <div id="distribution-system-04_distributions.r"
+                class="section level2">
+                <h2>Distribution System
+                (<code>04_distributions.R</code>)</h2>
+                <div id="the-package-environment"
+                class="section level3">
+                <h3>The Package Environment</h3>
+                <p>Distributions are stored in a private environment
+                <code>pkg.env</code>:</p>
+                <div class="sourceCode" id="cb24"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span></code></pre></div>
+                <p>This stores:</p>
+                <div class="sourceCode" id="cb25"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a>pkg.env<span class="sc">$</span>X <span class="ot">=</span> <span class="fu">list</span>(</span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>  <span class="at">distribution =</span> <span class="st">&quot;Normal&quot;</span>,</span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a>  <span class="at">params =</span> <span class="fu">list</span>(<span class="at">mu =</span> <span class="fu">quote</span>(mu), <span class="at">sigma =</span> <span class="fu">quote</span>(sigma))</span>
+<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a>)</span></code></pre></div>
+                </div>
+                <div id="moment-lookup" class="section level3">
+                <h3>Moment Lookup</h3>
+                <p>When <code>expect.recursive()</code> encounters a
+                registered variable, it calls:</p>
+                <ul>
+                <li><code>get.first.moment(var_name)</code> → Returns
+                symbolic E[X]</li>
+                <li><code>get.second.moment(var_name)</code> → Returns
+                symbolic E[X²]</li>
+                <li><code>get.mgf(var_name, t)</code> → Returns M_X(t) =
+                E[e^tX]</li>
+                </ul>
+                <p>Each function uses a <code>switch()</code> on the
+                distribution name to return the appropriate formula:</p>
+                <div class="sourceCode" id="cb26"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a><span class="fu">E</span>(X)      <span class="co"># mu (from get.first.moment)</span></span></code></pre></div>
+                <pre><code>#&gt; mu</code></pre>
+                <div class="sourceCode" id="cb28"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="fu">E</span>(X<span class="sc">^</span><span class="dv">2</span>)    <span class="co"># sigma^2 + mu^2 (from get.second.moment)</span></span></code></pre></div>
+                <pre><code>#&gt; sigma^2 + mu^2</code></pre>
+                <div class="sourceCode" id="cb30"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                </div>
+                <div id="independence-tracking" class="section level3">
+                <h3>Independence Tracking</h3>
+                <p>Independence is stored as pairs in
+                <code>pkg.env$.independence_pairs</code>:</p>
+                <div class="sourceCode" id="cb31"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">assume.independent</span>(X, Y, Z)  <span class="co"># Creates pairs: X:Y, X:Z, Y:Z</span></span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a><span class="fu">show.independence</span>()</span></code></pre></div>
+                <pre><code>#&gt; Independence assumptions:
+#&gt;    X ⊥ Y 
+#&gt;    X ⊥ Z 
+#&gt;    Y ⊥ Z</code></pre>
+                <div class="sourceCode" id="cb33"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="fu">clear.independence</span>()</span></code></pre></div>
+                <p>The <code>are.independent(x, y)</code> function
+                checks if a pair exists in this list.</p>
+                <hr />
+                </div>
+                </div>
+                <div id="calculus-module-05_calculus.r"
+                class="section level2">
+                <h2>Calculus Module (<code>05_calculus.R</code>)</h2>
+                <div id="symbolic-differentiation"
+                class="section level3">
+                <h3>Symbolic Differentiation</h3>
+                <p><code>deriv.sym()</code> wraps
+                <code>stats::D()</code> with special handling for
+                <code>E()</code> calls:</p>
+                <div class="sourceCode" id="cb34"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a><span class="fu">deriv.sym</span>(x<span class="sc">^</span><span class="dv">3</span>, x)           <span class="co"># 3 * x^2</span></span></code></pre></div>
+                <pre><code>#&gt; 3 * x^2</code></pre>
+                <div class="sourceCode" id="cb36"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="fu">deriv.sym</span>(x <span class="sc">*</span> <span class="fu">E</span>(Y), x)      <span class="co"># E(Y) - treats E(Y) as constant</span></span></code></pre></div>
+                <pre><code>#&gt; E(Y)</code></pre>
+                <p>The <code>protect.E()</code> /
+                <code>restore.E()</code> pattern replaces
+                <code>E(...)</code> with temp symbols
+                <code>__E_...___</code> before calling
+                <code>stats::D()</code>, then restores them after.</p>
+                </div>
+                <div id="definite-integration" class="section level3">
+                <h3>Definite Integration</h3>
+                <p><code>integrate.sym()</code> uses <strong>kernel
+                recognition</strong> rather than symbolic
+                antiderivatives:</p>
+                <div class="sourceCode" id="cb38"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="co"># Gamma kernel: x^a * exp(-bx)</span></span>
+<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <pre><code>#&gt; gamma(2 + 1)/(--1)^(2 + 1)</code></pre>
+                <div class="sourceCode" id="cb40"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a><span class="co"># Gaussian kernel: exp(-ax^2)</span></span>
+<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(<span class="fu">exp</span>(<span class="sc">-</span>x<span class="sc">^</span><span class="dv">2</span>), x, <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <pre><code>#&gt; sqrt(pi/0) * exp(0)</code></pre>
+                <div class="sourceCode" id="cb42"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a><span class="co"># Beta kernel: x^a * (1-x)^b</span></span>
+<span id="cb42-2"><a href="#cb42-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x <span class="sc">*</span> (<span class="dv">1</span><span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="dv">1</span>)</span></code></pre></div>
+                <pre><code>#&gt; beta(1 + 1, 1 + 1)</code></pre>
+                <p>If no kernel matches, an unevaluated
+                <code>Integrate()</code> call is returned.</p>
+                <hr />
+                </div>
+                </div>
+                <div id="latex-conversion-06_latex.r"
+                class="section level2">
+                <h2>LaTeX Conversion (<code>06_latex.R</code>)</h2>
+                <p>The <code>to.latex()</code> S3 generic dispatches to
+                <code>expr.to.latex()</code> for recursive
+                conversion:</p>
+                <div class="sourceCode" id="cb44"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" tabindex="-1"></a><span class="fu">to.latex</span>(<span class="fu">E</span>(a <span class="sc">*</span> X <span class="sc">+</span> b))</span></code></pre></div>
+                <pre><code>#&gt; LaTeX:
+#&gt; a \mathbb{E}[X] + b</code></pre>
+                <div class="sourceCode" id="cb46"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" tabindex="-1"></a><span class="fu">to.latex</span>(<span class="fu">Var</span>(X))</span></code></pre></div>
+                <pre><code>#&gt; LaTeX:
+#&gt; \mathbb{E}[X^{2}] - \mathbb{E}[X]^{2}</code></pre>
+                <p>Key conversions:</p>
+                <table>
+                <thead>
+                <tr class="header">
+                <th>R Expression</th>
+                <th>LaTeX Output</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td><code>E(X)</code></td>
+                <td><code>\mathbb{E}[X]</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>Var(X)</code></td>
+                <td><code>\text{Var}(X)</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>a/b</code></td>
+                <td><code>\frac{a}{b}</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>x^2</code></td>
+                <td><code>x^{2}</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>sqrt(x)</code></td>
+                <td><code>\sqrt{x}</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>mu</code>, <code>sigma</code></td>
+                <td><code>\mu</code>, <code>\sigma</code></td>
+                </tr>
+                </tbody>
+                </table>
+                <p>Greek letters are mapped via
+                <code>.greek_letters</code>, and subscript notation
+                (e.g., <code>X_1</code>) produces proper LaTeX
+                subscripts.</p>
+                <hr />
+                </div>
+                <div id="summary-data-flow" class="section level2">
+                <h2>Summary: Data Flow</h2>
+                <p>A complete call like <code>E(a * X + b)</code> flows
+                through:</p>
+                <ol style="list-style-type: decimal">
+                <li><strong>Capture</strong>:
+                <code>substitute(expr)</code> → unevaluated AST</li>
+                <li><strong>Normalize</strong>:
+                <code>ensure.expression()</code> → consistent form</li>
+                <li><strong>Transform</strong>:
+                <code>expect.recursive()</code> → apply linearity</li>
+                <li><strong>Lookup</strong>:
+                <code>get.first.moment()</code> → substitute known
+                moments</li>
+                <li><strong>Simplify</strong>:
+                <code>simplify.expr()</code> → remove identities</li>
+                <li><strong>Return</strong>: Cleaned expression as R
+                call object</li>
+                </ol>
+                <p>The result remains an <strong>unevaluated R
+                expression</strong>—not a string, not a number—which
+                means it can be further manipulated, converted to LaTeX,
+                or used in subsequent calculations.</p>
+                <hr />
+                <p>This is where we lift the hood and show you the
+                engine.</p>
+                <p>How does SymbolizeR know that <code>X</code> is a
+                random variable and <code>mu</code> is a constant
+                without you ever telling it? And how does
+                <code>E(a*X + b)</code> turn into
+                <code>a*E(X) + b</code>?</p>
+                <p>It uses a technique called <strong>Non-Standard
+                Evaluation (NSE)</strong> to capture your code before it
+                runs, and then it walks through the structure of that
+                code using a <strong>Recursive Descent
+                Parser</strong>.</p>
+                <hr />
+                </div>
+                <div id="the-code-is-a-tree" class="section level2">
+                <h2>The Code is a Tree</h2>
+                <p>In R, every expression is actually a tree. When you
+                type <code>a * X + b</code>, R sees:</p>
+                <pre><code>    (+)
+    / \
+  (*)  b
+  / \
+ a   X</code></pre>
+                <p>SymbolizeR walks down this tree.</p>
+                <ol style="list-style-type: decimal">
+                <li>It sees the <code>+</code>. It knows
+                <code>E(LHS + RHS) = E(LHS) + E(RHS)</code>. So it
+                splits the problem in two.</li>
+                <li>It looks at the left branch: <code>a * X</code>. It
+                checks if <code>a</code> is random (lowercase <span
+                class="math inline">→</span> no) and if <code>X</code>
+                is random (uppercase <span class="math inline">→</span>
+                yes).</li>
+                <li>Since it’s <code>Constant * Random</code>, it knows
+                it can pull the constant out:
+                <code>a * E(X)</code>.</li>
+                <li>It looks at the right branch: <code>b</code>. It’s a
+                constant. <code>E(Constant) = Constant</code>.</li>
+                </ol>
+                <p>The result is reassembled:
+                <code>a * E(X) + b</code>.</p>
+                <hr />
+                </div>
+                <div id="how-it-determines-types"
+                class="section level2">
+                <h2>How it Determines Types</h2>
+                <p>We use a strict but simple heuristic based on
+                variable names. This logic sits in
+                <code>get.type()</code>:</p>
+                <ol style="list-style-type: decimal">
+                <li><strong>Numbers</strong> (like <code>5</code> or
+                <code>3.14</code>) are always Constants.</li>
+                <li><strong>Calls</strong> (like <code>sin(x)</code> or
+                <code>exp(y)</code>) are analyzed recursively. If they
+                contain <em>any</em> random variable, the whole call is
+                Random.</li>
+                <li><strong>Symbols</strong> (variable names) are
+                checked against the convention:
+                <ul>
+                <li>Starts with <code>A-Z</code> <span
+                class="math inline">→</span> <strong>Random
+                Variable</strong></li>
+                <li>Starts with <code>a-z</code> <span
+                class="math inline">→</span>
+                <strong>Constant</strong></li>
+                <li>Starts with <code>.</code> <span
+                class="math inline">→</span>
+                <strong>Constant</strong></li>
+                </ul></li>
+                </ol>
+                <p>This is why <code>mu</code> works as a constant
+                (starts with lowercase ‘m’) and <code>X</code> works as
+                a variable.</p>
+                <hr />
+                </div>
+                <div id="the-expectation-engine" class="section level2">
+                <h2>The Expectation Engine</h2>
+                <p>The <code>E()</code> function isn’t doing any
+                statistics. It’s doing <strong>pattern
+                matching</strong>.</p>
+                <p>Internally, it looks something like this
+                pseudocode:</p>
+                <div class="sourceCode" id="cb49"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" tabindex="-1"></a>process_node <span class="ot">&lt;-</span> <span class="cf">function</span>(node) {</span>
+<span id="cb49-2"><a href="#cb49-2" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.sum</span>(node)) {</span>
+<span id="cb49-3"><a href="#cb49-3" tabindex="-1"></a>    <span class="fu">return</span>( <span class="fu">process_node</span>(node<span class="sc">$</span>left) <span class="sc">+</span> <span class="fu">process_node</span>(node<span class="sc">$</span>right) )</span>
+<span id="cb49-4"><a href="#cb49-4" tabindex="-1"></a>  }</span>
+<span id="cb49-5"><a href="#cb49-5" tabindex="-1"></a>  </span>
+<span id="cb49-6"><a href="#cb49-6" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.product</span>(node)) {</span>
+<span id="cb49-7"><a href="#cb49-7" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.constant</span>(node<span class="sc">$</span>left) <span class="sc">&amp;&amp;</span> <span class="fu">is.random</span>(node<span class="sc">$</span>right)) {</span>
+<span id="cb49-8"><a href="#cb49-8" tabindex="-1"></a>      <span class="fu">return</span>( node<span class="sc">$</span>left <span class="sc">*</span> <span class="fu">E</span>(node<span class="sc">$</span>right) )</span>
+<span id="cb49-9"><a href="#cb49-9" tabindex="-1"></a>    }</span>
+<span id="cb49-10"><a href="#cb49-10" tabindex="-1"></a>  }</span>
+<span id="cb49-11"><a href="#cb49-11" tabindex="-1"></a>  </span>
+<span id="cb49-12"><a href="#cb49-12" tabindex="-1"></a>  <span class="co"># ... more rules ...</span></span>
+<span id="cb49-13"><a href="#cb49-13" tabindex="-1"></a>}</span></code></pre></div>
+                <p>It keeps recursing until it hits a base case (like a
+                defined distribution or a generic variable).</p>
+                <hr />
+                </div>
+                <div id="variance-is-just-expectation"
+                class="section level2">
+                <h2>Variance is Just Expectation</h2>
+                <p>We didn’t write a separate complex engine for
+                <code>Var()</code>. We essentially defined it as a
+                macro:</p>
+                <p><code>Var(X)</code> <span
+                class="math inline">→</span>
+                <code>E(X^2) - (E(X))^2</code></p>
+                <p>When you call <code>Var(a*X)</code>, SymbolizeR
+                expands it out: 1. Calculates <code>E((a*X)^2)</code>
+                <span class="math inline">→</span>
+                <code>E(a^2 * X^2)</code> <span
+                class="math inline">→</span> <code>a^2 * E(X^2)</code>
+                2. Calculates <code>(E(a*X))^2</code> <span
+                class="math inline">→</span> <code>(a * E(X))^2</code>
+                <span class="math inline">→</span>
+                <code>a^2 * E(X)^2</code> 3. Subtracts them.</p>
+                <p>This “rewrite rule” approach ensures that
+                <code>Var()</code> is always mathematically consistent
+                with <code>E()</code>.</p>
+                <hr />
+                </div>
+                <div id="why-did-we-assume-independence-sometimes"
+                class="section level2">
+                <h2>Why did we assume independence sometimes?</h2>
+                <p>You might notice if you run <code>E(X * Y)</code>, it
+                doesn’t simplify. That’s because
+                <code>E[XY] = E[X]E[Y]</code> is <strong>only</strong>
+                true if <code>X</code> and <code>Y</code> are
+                independent (or at least uncorrelated).</p>
+                <p>We track independence using an internal environment.
+                When you call <code>assume.independent(X, Y)</code>, we
+                literally add a tag to the pair <code>(X, Y)</code>. The
+                engine checks this tag before applying the product
+                rule.</p>
+                <p>This makes the system safe. It assumes nothing,
+                unless you or a definition explicitly grants
+                permission.</p>
+                <div class="page-nav">
+                <a href="calculus.html" class="page-nav-item prev">
+                <span class="page-nav-label">Previous</span> <span
+                class="page-nav-title">← Calculus</span> </a>
+                <div>
+
+                </div>
+                </div>
+                </div>
+            </article>
+        </main>
+
+        <!-- On This Page TOC -->
+        <aside class="toc-sidebar">
+            <nav class="toc-container">
+                <div class="toc-heading">On This Page</div>
+                <ul class="toc-list">
+                    <!-- Generated dynamically by layout.js -->
+                </ul>
+            </nav>
+        </aside>
+    </div>
+
+    <!-- Layout JavaScript -->
+    <script src="layout.js"></script>
+    
+    <!-- MathJax for equations -->
+    <script>
+        (function () {
+            var script = document.createElement("script");
+            script.type = "text/javascript";
+            script.src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+            document.getElementsByTagName("head")[0].appendChild(script);
+        })();
+    </script>
+    
+    </body>
+</html>

@@ -1,0 +1,19 @@
+Package: SymbolizeR
+Title: Symbolic Probability Calculations
+Version: 0.1.0
+Authors@R: 
+    person("SymbolizeR", "Authors", email = "symbolizer@example.com", role = c("aut", "cre"))
+Description: A lightweight symbolic probability engine that helps users derive
+    Expectations, Variances, and Covariances using standard R syntax. Uses a
+    capital letter heuristic to distinguish random variables (uppercase) from
+    constants (lowercase).
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Suggests: 
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+Config/testthat/edition: 3
+VignetteBuilder: knitr

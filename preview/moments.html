@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Moments &amp; Higher-Order Statistics - SymbolizeR</title>
+    <meta name="description" content="Moments &amp; Higher-Order
+Statistics - SymbolizeR documentation">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="dist/output.css">
+    
+    <!-- Pandoc/Rmarkdown Syntax Highlighting Override -->
+    <style>
+        /* Reset pandoc defaults to work with our theme */
+        html { -webkit-text-size-adjust: 100%; }
+        pre > code.sourceCode { white-space: pre; position: relative; }
+        pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+        pre > code.sourceCode > span:empty { height: 1.2em; }
+        .sourceCode { overflow: visible; }
+        code.sourceCode > span { color: inherit; text-decoration: inherit; }
+        div.sourceCode { margin: 1em 0; }
+        pre.sourceCode { margin: 0; }
+        @media screen {
+            div.sourceCode { overflow: auto; }
+        }
+    </style>
+    
+        <script src="moments_files/header-attrs-2.29/header-attrs.js"></script>
+    </head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <button class="mobile-menu-btn" aria-label="Toggle Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <a href="index.html" class="header-logo">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="16" cy="16" r="12" stroke-dasharray="4 2"/>
+                <path d="M11 16c0-6 5-10 5-10s5 4 5 10-5 10-5 10-5-4-5-10z"/>
+                <circle cx="16" cy="16" r="3" fill="currentColor"/>
+            </svg>
+            SymbolizeR
+        </a>
+        <nav class="header-nav">
+            <a href="index.html">Docs</a>
+            <a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+        <button class="header-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Quick search...
+            <kbd>Ctrl K</kbd>
+        </button>
+    </header>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Layout -->
+    <div class="docs-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Documentation</div>
+                <ul class="sidebar-nav">
+                    <li><a href="getting-started.html">Getting Started</a></li>
+                    <li><a href="distributions.html">Distributions</a></li>
+                    <li><a href="derivations.html">Derivations</a></li>
+                    <li><a href="moments.html">Moments & Statistics</a></li>
+                    <li><a href="calculus.html">Calculus</a></li>
+                    <li><a href="internals.html">Package Internals</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub →</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <article class="content-article">
+                                <h1 class="title">Moments &amp;
+Higher-Order Statistics</h1>
+                                
+                <div class="sourceCode" id="cb1"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(SymbolizeR)</span></code></pre></div>
+                <p>Beyond expectation and variance, SymbolizeR provides
+                <strong>raw moments</strong>, <strong>skewness</strong>,
+                and <strong>excess kurtosis</strong>—all computed
+                symbolically with full simplification.</p>
+                <hr />
+                <div id="raw-moments-with-moment"
+                class="section level2">
+                <h2>Raw Moments with <code>moment()</code></h2>
+                <p>The <code>moment(X, n)</code> function computes the
+                nth raw moment <span
+                class="math inline"><em>E</em>[<em>X</em><sup><em>n</em></sup>]</span>
+                for defined distributions:</p>
+                <div class="sourceCode" id="cb2"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co"># First four raw moments</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="fu">moment</span>(X, <span class="dv">1</span>)  <span class="co"># E[X]</span></span></code></pre></div>
+                <pre><code>#&gt; mu</code></pre>
+                <div class="sourceCode" id="cb4"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">moment</span>(X, <span class="dv">2</span>)  <span class="co"># E[X²]</span></span></code></pre></div>
+                <pre><code>#&gt; sigma^2 + mu^2</code></pre>
+                <div class="sourceCode" id="cb6"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">moment</span>(X, <span class="dv">3</span>)  <span class="co"># E[X³]</span></span></code></pre></div>
+                <pre><code>#&gt; mu^3 + 3 * (mu * sigma^2)</code></pre>
+                <div class="sourceCode" id="cb8"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">moment</span>(X, <span class="dv">4</span>)  <span class="co"># E[X⁴]</span></span></code></pre></div>
+                <pre><code>#&gt; mu^4 + 6 * (mu^2 * sigma^2) + 3 * sigma^4</code></pre>
+                <div class="sourceCode" id="cb10"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                <div id="supported-distributions"
+                class="section level3">
+                <h3>Supported Distributions</h3>
+                <p>Raw moments up to order 4 are supported for
+                <strong>all 14 distributions</strong>:</p>
+                <table>
+                <thead>
+                <tr class="header">
+                <th>Distribution</th>
+                <th>E[X³]</th>
+                <th>E[X⁴]</th>
+                <th>Notes</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td><strong>Normal</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td>Symmetric</td>
+                </tr>
+                <tr class="even">
+                <td><strong>Uniform</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td>Symmetric</td>
+                </tr>
+                <tr class="odd">
+                <td><strong>Exponential</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td></td>
+                </tr>
+                <tr class="even">
+                <td><strong>Gamma</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td></td>
+                </tr>
+                <tr class="odd">
+                <td><strong>Beta</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td></td>
+                </tr>
+                <tr class="even">
+                <td><strong>LogNormal</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td><code>exp()</code> form</td>
+                </tr>
+                <tr class="odd">
+                <td><strong>Weibull</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td>Uses <code>gamma()</code></td>
+                </tr>
+                <tr class="even">
+                <td><strong>Binomial</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td></td>
+                </tr>
+                <tr class="odd">
+                <td><strong>Poisson</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td></td>
+                </tr>
+                <tr class="even">
+                <td><strong>Geometric</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td></td>
+                </tr>
+                <tr class="odd">
+                <td><strong>NegBinomial</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td></td>
+                </tr>
+                <tr class="even">
+                <td><strong>ChiSq</strong></td>
+                <td>✅</td>
+                <td>✅</td>
+                <td></td>
+                </tr>
+                <tr class="odd">
+                <td><strong>InvGamma</strong></td>
+                <td>✅*</td>
+                <td>✅*</td>
+                <td>*Requires α &gt; 3, α &gt; 4</td>
+                </tr>
+                <tr class="even">
+                <td><strong>StudentT</strong></td>
+                <td>✅*</td>
+                <td>✅*</td>
+                <td>*Requires df &gt; 3, df &gt; 4</td>
+                </tr>
+                </tbody>
+                </table>
+                <div class="sourceCode" id="cb11"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co"># Gamma distribution</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="fu">define</span>(Y <span class="sc">~</span> <span class="fu">Gamma</span>(alpha, beta))</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="fu">moment</span>(Y, <span class="dv">3</span>)  <span class="co"># E[X³] = α(α+1)(α+2) / β³</span></span></code></pre></div>
+                <pre><code>#&gt; alpha * (alpha + 1) * (alpha + 2)/beta^3</code></pre>
+                <div class="sourceCode" id="cb13"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Beta distribution</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">define</span>(Z <span class="sc">~</span> <span class="fu">Beta</span>(alpha, beta))</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="fu">moment</span>(Z, <span class="dv">3</span>)  <span class="co"># Uses (α+β) terms</span></span></code></pre></div>
+                <pre><code>#&gt; alpha * (alpha + 1) * (alpha + 2)/((alpha + beta) * (alpha + 
+#&gt;     beta + 1) * (alpha + beta + 2))</code></pre>
+                <div class="sourceCode" id="cb15"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Geometric distribution</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">define</span>(N <span class="sc">~</span> <span class="fu">Geometric</span>(p))</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="fu">moment</span>(N, <span class="dv">4</span>)</span></code></pre></div>
+                <pre><code>#&gt; (-1 * p^3 - 14 * p^2 + -36 * p + 24)/p^4</code></pre>
+                <div class="sourceCode" id="cb17"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                </div>
+                <div id="constrained-moments" class="section level3">
+                <h3>Constrained Moments</h3>
+                <p>Some distributions have moments that only exist under
+                parameter constraints. These are annotated with their
+                constraints accordingly:</p>
+                <div class="sourceCode" id="cb18"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="co"># InvGamma third moment requires α &gt; 3</span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">InvGamma</span>(alpha, beta))</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="fu">moment</span>(X, <span class="dv">3</span>)</span></code></pre></div>
+                <pre><code>#&gt; beta^3/((alpha - 1) * (alpha - 2) * (alpha - 3)) when alpha &gt; 3</code></pre>
+                <div class="sourceCode" id="cb20"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># StudentT kurtosis requires df &gt; 4</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">define</span>(T <span class="sc">~</span> <span class="fu">StudentT</span>(df))</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="fu">moment</span>(T, <span class="dv">4</span>)</span></code></pre></div>
+                <pre><code>#&gt; 3 * df^2/((df - 2) * (df - 4)) when df &gt; 4</code></pre>
+                <div class="sourceCode" id="cb22"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                </div>
+                <div id="gamma-function-forms" class="section level3">
+                <h3>Gamma Function Forms</h3>
+                <p>For Weibull and related distributions, moments
+                involve the gamma function:</p>
+                <div class="sourceCode" id="cb23"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a><span class="fu">define</span>(W <span class="sc">~</span> <span class="fu">Weibull</span>(k, lambda))</span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a><span class="fu">moment</span>(W, <span class="dv">3</span>)  <span class="co"># λ³ · Γ(1 + 3/k)</span></span></code></pre></div>
+                <pre><code>#&gt; lambda^3 * gamma(1 + 3/k)</code></pre>
+                <div class="sourceCode" id="cb25"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                <hr />
+                </div>
+                </div>
+                <div id="skewness" class="section level2">
+                <h2>Skewness</h2>
+                <p><strong>Skewness</strong> measures asymmetry of the
+                distribution: <span class="math display">$$\gamma_1 =
+                \frac{E[(X - \mu)^3]}{\sigma^3}$$</span></p>
+                <p>For symmetric distributions like Normal, skewness
+                equals <strong>zero</strong>:</p>
+                <div class="sourceCode" id="cb26"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb26-3"><a href="#cb26-3" tabindex="-1"></a></span>
+<span id="cb26-4"><a href="#cb26-4" tabindex="-1"></a><span class="fu">Skewness</span>(X)  <span class="co"># Returns 0 for Normal</span></span></code></pre></div>
+                <pre><code>#&gt; [1] 0</code></pre>
+                <div class="sourceCode" id="cb28"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                <div id="step-by-step-derivation"
+                class="section level3">
+                <h3>Step-by-Step Derivation</h3>
+                <p>Use <code>derive.Skewness()</code> to see the
+                computation:</p>
+                <div class="sourceCode" id="cb29"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a><span class="fu">derive.Skewness</span>(X)</span></code></pre></div>
+                <pre><code>#&gt; Derivation of: Skewness(X) 
+#&gt; ==================================================
+#&gt; 
+#&gt; Step 1: Starting expression
+#&gt;   Rule: Input
+#&gt;   =&gt; Skewness(X)
+#&gt; 
+#&gt; Step 2: Apply skewness definition
+#&gt;   Rule: Skewness = E[(X-μ)³] / σ³
+#&gt;   =&gt; E[(X - E[X])³] / (Var[X])^(3/2)
+#&gt; 
+#&gt; Step 3: Compute required moments
+#&gt;   Rule: E[X], E[X²], E[X³]
+#&gt;   =&gt; E[X] = mu, E[X²] = sigma^2 + mu^2, E[X³] = E(X^3)
+#&gt; 
+#&gt; Step 4: Substitute moments into formula
+#&gt;   Rule: γ₁ = (E[X³] - 3μE[X²] + 2μ³) / σ³
+#&gt;   =&gt; (E(X^3) - 3 * (mu * (sigma^2 + mu^2)) + 2 * mu^3)/(sigma^2)^(3/2)
+#&gt; 
+#&gt; Step 5: Final result
+#&gt;   Rule: Done
+#&gt;   =&gt; 0
+#&gt; 
+#&gt; ==================================================
+#&gt; Final Answer: 0</code></pre>
+                <div class="sourceCode" id="cb31"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                <hr />
+                </div>
+                </div>
+                <div id="excess-kurtosis" class="section level2">
+                <h2>Excess Kurtosis</h2>
+                <p><strong>Excess kurtosis</strong> measures tail
+                heaviness relative to Normal: <span
+                class="math display">$$\gamma_2 = \frac{E[(X -
+                \mu)^4]}{\sigma^4} - 3$$</span></p>
+                <p>The Normal distribution has excess kurtosis of
+                <strong>zero</strong> (mesokurtic):</p>
+                <div class="sourceCode" id="cb32"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb32-3"><a href="#cb32-3" tabindex="-1"></a></span>
+<span id="cb32-4"><a href="#cb32-4" tabindex="-1"></a><span class="fu">Kurtosis</span>(X)  <span class="co"># Returns 0 for Normal</span></span></code></pre></div>
+                <pre><code>#&gt; [1] 0</code></pre>
+                <div class="sourceCode" id="cb34"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a><span class="co"># Non-excess kurtosis (raw kurtosis)</span></span>
+<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a><span class="fu">Kurtosis</span>(X, <span class="at">excess =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+                <pre><code>#&gt; [1] 3</code></pre>
+                <div class="sourceCode" id="cb36"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                <div id="step-by-step-derivation-1"
+                class="section level3">
+                <h3>Step-by-Step Derivation</h3>
+                <div class="sourceCode" id="cb37"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a><span class="fu">derive.Kurtosis</span>(X)</span></code></pre></div>
+                <pre><code>#&gt; Derivation of: Kurtosis(X) 
+#&gt; ==================================================
+#&gt; 
+#&gt; Step 1: Starting expression
+#&gt;   Rule: Input
+#&gt;   =&gt; Kurtosis(X)
+#&gt; 
+#&gt; Step 2: Apply excess kurtosis definition
+#&gt;   Rule: Excess Kurtosis = E[(X-μ)⁴] / σ⁴ - 3
+#&gt;   =&gt; E[(X - E[X])⁴] / (Var[X])² - 3
+#&gt; 
+#&gt; Step 3: Compute required moments
+#&gt;   Rule: E[X], E[X²], E[X⁴]
+#&gt;   =&gt; E[X] = mu, E[X²] = sigma^2 + mu^2, E[X⁴] = E(X^4)
+#&gt; 
+#&gt; Step 4: Substitute moments into formula
+#&gt;   Rule: γ₂ = (E[X⁴] - 4μE[X³] + 6μ²E[X²] - 3μ⁴) / σ⁴ - 3
+#&gt;   =&gt; (E(X^4) - 4 * (mu * E(X^3)) + 6 * (mu^2 * (sigma^2 + mu^2)) -     3 * mu^4)/sigma^4 - 3
+#&gt; 
+#&gt; Step 5: Final result
+#&gt;   Rule: Done
+#&gt;   =&gt; 0
+#&gt; 
+#&gt; ==================================================
+#&gt; Final Answer: 0</code></pre>
+                <div class="sourceCode" id="cb39"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                <hr />
+                </div>
+                </div>
+                <div id="full-polynomial-simplification"
+                class="section level2">
+                <h2>Full Polynomial Simplification</h2>
+                <p>A key feature of SymbolizeR: <strong>complete
+                symbolic simplification</strong>. When computing
+                higher-order statistics, all terms are expanded,
+                collected, and cancelled automatically.</p>
+                <p>For example, Kurtosis involves <span
+                class="math inline"><em>E</em>[<em>X</em><sup>4</sup>]</span>,
+                <span
+                class="math inline"><em>E</em>[<em>X</em><sup>3</sup>]</span>,
+                <span
+                class="math inline"><em>E</em>[<em>X</em><sup>2</sup>]</span>,
+                and <span
+                class="math inline"><em>E</em>[<em>X</em>]</span>—resulting
+                in a complex polynomial. SymbolizeR:</p>
+                <ol style="list-style-type: decimal">
+                <li><strong>Expands products</strong>: <span
+                class="math inline"><em>μ</em> ⋅ (<em>μ</em><sup>3</sup> + 3<em>μ</em><em>σ</em><sup>2</sup>) → <em>μ</em><sup>4</sup> + 3<em>μ</em><sup>2</sup><em>σ</em><sup>2</sup></span></li>
+                <li><strong>Combines powers</strong>: <span
+                class="math inline">(<em>σ</em><sup>2</sup>)<sup>2</sup> → <em>σ</em><sup>4</sup></span></li>
+                <li><strong>Collects like terms</strong>: Adds/subtracts
+                terms with matching bases</li>
+                <li><strong>Cancels</strong>: Terms like <span
+                class="math inline"><em>μ</em><sup>4</sup> − <em>μ</em><sup>4</sup> = 0</span></li>
+                </ol>
+                <p>The result: Normal’s excess kurtosis correctly
+                simplifies to <strong>0</strong>, not a complex
+                unsimplified expression.</p>
+                <hr />
+                </div>
+                <div id="latex-export" class="section level2">
+                <h2>LaTeX Export</h2>
+                <p>Convert any result to LaTeX for papers and
+                homework:</p>
+                <div class="sourceCode" id="cb40"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a></span>
+<span id="cb40-4"><a href="#cb40-4" tabindex="-1"></a><span class="co"># LaTeX for a derivation</span></span>
+<span id="cb40-5"><a href="#cb40-5" tabindex="-1"></a><span class="fu">to.latex</span>(<span class="fu">derive.E</span>(X))</span></code></pre></div>
+                <pre><code>#&gt; [1] &quot;\\begin{align*}\n  \\mathbb{E}[X] &amp;= \\mathbb{E}[X] &amp;&amp; \\text{(Starting expression)} \\\\\n  &amp;= \\mu &amp;&amp; \\text{(Apply expectation rules)} \\\\\n  &amp;= \\mu &amp;&amp; \\text{(Substitute known distributions)} \\\\\n  &amp;= \\mu &amp;&amp; \\text{(Final result)}\n\\end{align*}&quot;</code></pre>
+                <div class="sourceCode" id="cb42"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                <hr />
+                </div>
+                <div id="whats-next" class="section level2">
+                <h2>What’s Next?</h2>
+                <ul>
+                <li><strong><a
+                href="calculus.html">Calculus</a></strong>: Symbolic
+                differentiation and integration</li>
+                <li><strong><a
+                href="internals.html">Internals</a></strong>: How the
+                simplification engine works</li>
+                </ul>
+                <div class="page-nav">
+                <p><a href="derivations.html" class="page-nav-item prev">
+                <span class="page-nav-label">Previous</span> <span
+                class="page-nav-title">← Derivations</span> </a>
+                <a href="calculus.html" class="page-nav-item next">
+                <span class="page-nav-label">Next</span> <span
+                class="page-nav-title">Calculus →</span> </a></p>
+                </div>
+                </div>
+            </article>
+        </main>
+
+        <!-- On This Page TOC -->
+        <aside class="toc-sidebar">
+            <nav class="toc-container">
+                <div class="toc-heading">On This Page</div>
+                <ul class="toc-list">
+                    <!-- Generated dynamically by layout.js -->
+                </ul>
+            </nav>
+        </aside>
+    </div>
+
+    <!-- Layout JavaScript -->
+    <script src="layout.js"></script>
+    
+    <!-- MathJax for equations -->
+    <script>
+        (function () {
+            var script = document.createElement("script");
+            script.type = "text/javascript";
+            script.src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+            document.getElementsByTagName("head")[0].appendChild(script);
+        })();
+    </script>
+    
+    </body>
+</html>

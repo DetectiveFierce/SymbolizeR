@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Working with Distributions - SymbolizeR</title>
+    <meta name="description" content="Working with
+Distributions - SymbolizeR documentation">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="dist/output.css">
+    
+    <!-- Pandoc/Rmarkdown Syntax Highlighting Override -->
+    <style>
+        /* Reset pandoc defaults to work with our theme */
+        html { -webkit-text-size-adjust: 100%; }
+        pre > code.sourceCode { white-space: pre; position: relative; }
+        pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+        pre > code.sourceCode > span:empty { height: 1.2em; }
+        .sourceCode { overflow: visible; }
+        code.sourceCode > span { color: inherit; text-decoration: inherit; }
+        div.sourceCode { margin: 1em 0; }
+        pre.sourceCode { margin: 0; }
+        @media screen {
+            div.sourceCode { overflow: auto; }
+        }
+    </style>
+    
+        <script src="distributions_files/header-attrs-2.29/header-attrs.js"></script>
+    </head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <button class="mobile-menu-btn" aria-label="Toggle Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <a href="index.html" class="header-logo">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="16" cy="16" r="12" stroke-dasharray="4 2"/>
+                <path d="M11 16c0-6 5-10 5-10s5 4 5 10-5 10-5 10-5-4-5-10z"/>
+                <circle cx="16" cy="16" r="3" fill="currentColor"/>
+            </svg>
+            SymbolizeR
+        </a>
+        <nav class="header-nav">
+            <a href="index.html">Docs</a>
+            <a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+        <button class="header-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Quick search...
+            <kbd>Ctrl K</kbd>
+        </button>
+    </header>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Layout -->
+    <div class="docs-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Documentation</div>
+                <ul class="sidebar-nav">
+                    <li><a href="getting-started.html">Getting Started</a></li>
+                    <li><a href="distributions.html">Distributions</a></li>
+                    <li><a href="derivations.html">Derivations</a></li>
+                    <li><a href="moments.html">Moments & Statistics</a></li>
+                    <li><a href="calculus.html">Calculus</a></li>
+                    <li><a href="internals.html">Package Internals</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub →</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <article class="content-article">
+                                <h1 class="title">Working with
+Distributions</h1>
+                                
+                <div class="sourceCode" id="cb1"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(SymbolizeR)</span></code></pre></div>
+                <p>Generic random variables like <code>X</code> are
+                great for general proofs. But eventually, you need to
+                get specific.</p>
+                <p>Calculating higher moments by hand—solving integrals
+                like <span
+                class="math inline">∫<em>x</em><sup>4</sup><em>ϕ</em>(<em>x</em>) <em>d</em><em>x</em></span>
+                where <span class="math inline"><em>ϕ</em></span> is the
+                Normal PDF—is painful. It’s exactly the kind of thing
+                computers should do for us.</p>
+                <p>SymbolizeR acts as a <strong>smart registry</strong>
+                for probability distributions. You tell it what
+                <code>X</code> is, and it handles the moment lookups for
+                you.</p>
+                <hr />
+                <div id="defining-your-model" class="section level2">
+                <h2>Defining Your Model</h2>
+                <p>You connect a variable to a distribution using the
+                <code>define()</code> function and standard R formula
+                syntax:</p>
+                <div class="sourceCode" id="cb2"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span></code></pre></div>
+                <p>Now, <code>X</code> isn’t just “some variable.” It’s
+                a Normal random variable. Ask for its expectation, and
+                you won’t get <code>E(X)</code> back—you’ll get the
+                actual parameter:</p>
+                <div class="sourceCode" id="cb3"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">E</span>(X)      <span class="co"># It knows this is mu</span></span></code></pre></div>
+                <pre><code>#&gt; mu</code></pre>
+                <div class="sourceCode" id="cb5"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">E</span>(X<span class="sc">^</span><span class="dv">2</span>)    <span class="co"># It knows the second moment is sigma^2 + mu^2</span></span></code></pre></div>
+                <pre><code>#&gt; sigma^2 + mu^2</code></pre>
+                <p>This is incredibly useful for verifying answers on
+                homework or double-checking your own derivations.</p>
+                <hr />
+                </div>
+                <div id="the-catalog-of-known-distributions"
+                class="section level2">
+                <h2>The Catalog of Known Distributions</h2>
+                <p>We’ve taught SymbolizeR about most of the standard
+                distributions you’ll encounter in introductory and
+                intermediate statistics.</p>
+                <div id="continuous-families" class="section level3">
+                <h3>Continuous Families</h3>
+                <p>For continuous variables, we support:</p>
+                <table>
+                <colgroup>
+                <col width="34%" />
+                <col width="34%" />
+                <col width="30%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Family</th>
+                <th>Syntax</th>
+                <th>Notes</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td><strong>Normal</strong></td>
+                <td><code>Normal(μ, σ)</code></td>
+                <td>The bread and butter of statistics.</td>
+                </tr>
+                <tr class="even">
+                <td><strong>Uniform</strong></td>
+                <td><code>Uniform(a, b)</code></td>
+                <td>Great for simple bounds.</td>
+                </tr>
+                <tr class="odd">
+                <td><strong>Exponential</strong></td>
+                <td><code>Exponential(λ)</code></td>
+                <td>Memoryless waiting times.</td>
+                </tr>
+                <tr class="even">
+                <td><strong>Gamma</strong></td>
+                <td><code>Gamma(α, β)</code></td>
+                <td>Shape-rate parameterization.</td>
+                </tr>
+                <tr class="odd">
+                <td><strong>InvGamma</strong></td>
+                <td><code>InvGamma(α, β)</code></td>
+                <td>Conjugate prior for variance.</td>
+                </tr>
+                <tr class="even">
+                <td><strong>Beta</strong></td>
+                <td><code>Beta(α, β)</code></td>
+                <td>Bounded between 0 and 1.</td>
+                </tr>
+                <tr class="odd">
+                <td><strong>LogNormal</strong></td>
+                <td><code>LogNormal(μ, σ)</code></td>
+                <td>Log of X is Normal.</td>
+                </tr>
+                <tr class="even">
+                <td><strong>Weibull</strong></td>
+                <td><code>Weibull(k, λ)</code></td>
+                <td>Shape-scale; reliability analysis.</td>
+                </tr>
+                <tr class="odd">
+                <td><strong>Chi-squared</strong></td>
+                <td><code>ChiSq(df)</code></td>
+                <td>Sum of squared normals.</td>
+                </tr>
+                <tr class="even">
+                <td><strong>Student’s t</strong></td>
+                <td><code>StudentT(df)</code></td>
+                <td>Heavy-tailed alternative to Normal.</td>
+                </tr>
+                </tbody>
+                </table>
+                </div>
+                <div id="discrete-families" class="section level3">
+                <h3>Discrete Families</h3>
+                <p>We haven’t forgotten about counts:</p>
+                <table>
+                <thead>
+                <tr class="header">
+                <th>Family</th>
+                <th>Syntax</th>
+                <th>Notes</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td><strong>Binomial</strong></td>
+                <td><code>Binomial(n, p)</code></td>
+                <td>Successes in n trials.</td>
+                </tr>
+                <tr class="even">
+                <td><strong>Poisson</strong></td>
+                <td><code>Poisson(λ)</code></td>
+                <td>Rare events.</td>
+                </tr>
+                <tr class="odd">
+                <td><strong>Geometric</strong></td>
+                <td><code>Geometric(p)</code></td>
+                <td>Trials until first success.</td>
+                </tr>
+                <tr class="even">
+                <td><strong>NegBinomial</strong></td>
+                <td><code>NegBinomial(r, p)</code></td>
+                <td>Trials until r successes.</td>
+                </tr>
+                </tbody>
+                </table>
+                <p>Let’s see a few in action. Notice how we use
+                <code>clear.definitions()</code> to reset the slate
+                between examples so variables don’t clash.</p>
+                <div class="sourceCode" id="cb7"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co"># Working with waiting times?</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="fu">define</span>(T <span class="sc">~</span> <span class="fu">Exponential</span>(lambda))</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="fu">E</span>(T)</span></code></pre></div>
+                <pre><code>#&gt; 1/lambda</code></pre>
+                <div class="sourceCode" id="cb9"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">E</span>(T<span class="sc">^</span><span class="dv">2</span>) <span class="co"># Second moment is 2/lambda^2</span></span></code></pre></div>
+                <pre><code>#&gt; 2/lambda^2</code></pre>
+                <div class="sourceCode" id="cb11"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># Counting logic?</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Binomial</span>(n, p))</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">E</span>(X)</span></code></pre></div>
+                <pre><code>#&gt; n * p</code></pre>
+                <hr />
+                </div>
+                </div>
+                <div id="it-handles-variance-too"
+                class="section level2">
+                <h2>It Handles Variance, Too</h2>
+                <p>Since <code>Var(X)</code> is just a wrapper for
+                moment calculations, defining a distribution makes
+                <code>Var()</code> work instantly:</p>
+                <div class="sourceCode" id="cb13"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co"># This simplifies all the way down to the parameter</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="fu">Var</span>(X)</span></code></pre></div>
+                <pre><code>#&gt; sigma^2</code></pre>
+                <hr />
+                </div>
+                <div id="generic-moments-the-moment-function"
+                class="section level2">
+                <h2>Generic Moments: The <code>moment()</code>
+                Function</h2>
+                <p>Sometimes you need higher-order moments beyond just
+                E[X] and E[X²]. The <code>moment(X, n)</code> function
+                computes E[Xⁿ]:</p>
+                <div class="sourceCode" id="cb15"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="fu">moment</span>(X, <span class="dv">1</span>)  <span class="co"># First moment = mu</span></span></code></pre></div>
+                <pre><code>#&gt; mu</code></pre>
+                <div class="sourceCode" id="cb17"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">moment</span>(X, <span class="dv">2</span>)  <span class="co"># Second moment = sigma^2 + mu^2</span></span></code></pre></div>
+                <pre><code>#&gt; sigma^2 + mu^2</code></pre>
+                <div class="sourceCode" id="cb19"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">moment</span>(X, <span class="dv">3</span>)  <span class="co"># Third moment</span></span></code></pre></div>
+                <pre><code>#&gt; mu^3 + 3 * (mu * sigma^2)</code></pre>
+                <div class="sourceCode" id="cb21"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">moment</span>(X, <span class="dv">4</span>)  <span class="co"># Fourth moment</span></span></code></pre></div>
+                <pre><code>#&gt; mu^4 + 6 * (mu^2 * sigma^2) + 3 * sigma^4</code></pre>
+                <hr />
+                </div>
+                <div id="higher-order-statistics"
+                class="section level2">
+                <h2>Higher-Order Statistics</h2>
+                <div id="skewness" class="section level3">
+                <h3>Skewness</h3>
+                <p>Skewness measures asymmetry. The
+                <code>Skewness()</code> function computes the
+                standardized third moment:</p>
+                <div class="sourceCode" id="cb23"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">Skewness</span>(X)  <span class="co"># Returns symbolic expression</span></span></code></pre></div>
+                <pre><code>#&gt; [1] 0</code></pre>
+                </div>
+                <div id="kurtosis" class="section level3">
+                <h3>Kurtosis</h3>
+                <p>Kurtosis measures tail weight. By default, we return
+                <strong>excess kurtosis</strong> (subtracts 3):</p>
+                <div class="sourceCode" id="cb25"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a><span class="fu">Kurtosis</span>(X)  <span class="co"># Excess kurtosis</span></span></code></pre></div>
+                <pre><code>#&gt; [1] 0</code></pre>
+                <div class="sourceCode" id="cb27"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="co"># For raw kurtosis, set excess = FALSE:</span></span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a><span class="fu">Kurtosis</span>(X, <span class="at">excess =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+                <pre><code>#&gt; [1] 3</code></pre>
+                <hr />
+                </div>
+                </div>
+                <div id="new-distributions-chi-squared-and-students-t"
+                class="section level2">
+                <h2>New Distributions: Chi-squared and Student’s t</h2>
+                <div class="sourceCode" id="cb29"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a><span class="co"># Chi-squared with k degrees of freedom</span></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">ChiSq</span>(k))</span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a><span class="fu">E</span>(X)      <span class="co"># k</span></span></code></pre></div>
+                <pre><code>#&gt; k</code></pre>
+                <div class="sourceCode" id="cb31"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">E</span>(X<span class="sc">^</span><span class="dv">2</span>)    <span class="co"># k^2 + 2*k</span></span></code></pre></div>
+                <pre><code>#&gt; k^2 + 2 * k</code></pre>
+                <div class="sourceCode" id="cb33"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="co"># Student&#39;s t with nu degrees of freedom</span></span>
+<span id="cb33-2"><a href="#cb33-2" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb33-3"><a href="#cb33-3" tabindex="-1"></a><span class="fu">define</span>(T <span class="sc">~</span> <span class="fu">StudentT</span>(nu))</span>
+<span id="cb33-4"><a href="#cb33-4" tabindex="-1"></a><span class="fu">E</span>(T)      <span class="co"># 0 (for nu &gt; 1)</span></span></code></pre></div>
+                <pre><code>#&gt; [1] 0</code></pre>
+                <div class="sourceCode" id="cb35"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a><span class="fu">E</span>(T<span class="sc">^</span><span class="dv">2</span>)    <span class="co"># nu / (nu - 2) (for nu &gt; 2)</span></span></code></pre></div>
+                <pre><code>#&gt; nu/(nu - 2)</code></pre>
+                <hr />
+                </div>
+                <div id="moment-generating-functions"
+                class="section level2">
+                <h2>Moment Generating Functions</h2>
+                <p>This is a “hidden super-power” of the package. If you
+                ask for the expectation of an exponential, <span
+                class="math inline"><em>E</em>[<em>e</em><sup><em>t</em><em>X</em></sup>]</span>,
+                that’s literally the definition of the <strong>Moment
+                Generating Function (MGF)</strong>.</p>
+                <p>SymbolizeR recognizes this pattern:</p>
+                <div class="sourceCode" id="cb37"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a></span>
+<span id="cb37-3"><a href="#cb37-3" tabindex="-1"></a><span class="co"># What&#39;s the MGF of a Poisson distribution?</span></span>
+<span id="cb37-4"><a href="#cb37-4" tabindex="-1"></a><span class="fu">define</span>(N <span class="sc">~</span> <span class="fu">Poisson</span>(lambda))</span>
+<span id="cb37-5"><a href="#cb37-5" tabindex="-1"></a><span class="fu">E</span>(<span class="fu">exp</span>(t <span class="sc">*</span> N))</span></code></pre></div>
+                <pre><code>#&gt; exp(lambda * (exp(t) - 1))</code></pre>
+                <p>And there it is: <span
+                class="math inline"><em>M</em><sub><em>N</em></sub>(<em>t</em>) = <em>e</em><sup><em>λ</em>(<em>e</em><sup><em>t</em></sup> − 1)</sup></span>.
+                No derivation required.</p>
+                <hr />
+                </div>
+                <div id="mixing-variables" class="section level2">
+                <h2>Mixing Variables</h2>
+                <p>You can mix generic variables with defined ones. This
+                is great for “semi-parametric” problems where you know
+                the distribution of errors but not the signal.</p>
+                <div class="sourceCode" id="cb39"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a><span class="fu">define</span>(Epsilon <span class="sc">~</span> <span class="fu">Normal</span>(<span class="dv">0</span>, sigma))</span>
+<span id="cb39-3"><a href="#cb39-3" tabindex="-1"></a></span>
+<span id="cb39-4"><a href="#cb39-4" tabindex="-1"></a><span class="co"># Y = Signal + Noise</span></span>
+<span id="cb39-5"><a href="#cb39-5" tabindex="-1"></a><span class="co"># We don&#39;t define Signal, so it stays generic &#39;E(Signal)&#39;</span></span>
+<span id="cb39-6"><a href="#cb39-6" tabindex="-1"></a><span class="fu">E</span>(Signal <span class="sc">+</span> Epsilon)</span></code></pre></div>
+                <pre><code>#&gt; E(Signal)</code></pre>
+                <p>Since <code>E[Epsilon]</code> is 0, it vanishes,
+                leaving just <code>E(Signal)</code>.</p>
+                <hr />
+                </div>
+                <div id="managing-your-definitions"
+                class="section level2">
+                <h2>Managing Your Definitions</h2>
+                <p>Because <code>define()</code> changes global state
+                for the session, you sometimes need to clean up.</p>
+                <ul>
+                <li><code>undefine("X")</code> removes a single
+                definition.</li>
+                <li><code>clear.definitions()</code> wipes
+                everything.</li>
+                </ul>
+                <div class="sourceCode" id="cb41"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a><span class="fu">E</span>(X)    <span class="co"># Back to being a generic symbol</span></span></code></pre></div>
+                <pre><code>#&gt; E(X)</code></pre>
+                <hr />
+                </div>
+                <div id="proof-of-the-sample-mean"
+                class="section level2">
+                <h2>Proof of the Sample Mean</h2>
+                <p>Let’s put it all together to prove that the sample
+                mean <span class="math inline"><em>X̄</em></span> is an
+                unbiased estimator for <span
+                class="math inline"><em>μ</em></span>.</p>
+                <ol style="list-style-type: decimal">
+                <li>We have three i.i.d. observations.</li>
+                <li>We want the expectation of their average.</li>
+                </ol>
+                <div class="sourceCode" id="cb43"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span>
+<span id="cb43-2"><a href="#cb43-2" tabindex="-1"></a><span class="fu">define</span>(X1 <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb43-3"><a href="#cb43-3" tabindex="-1"></a><span class="fu">define</span>(X2 <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb43-4"><a href="#cb43-4" tabindex="-1"></a><span class="fu">define</span>(X3 <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb43-5"><a href="#cb43-5" tabindex="-1"></a></span>
+<span id="cb43-6"><a href="#cb43-6" tabindex="-1"></a><span class="co"># The sample mean is (X1 + X2 + X3) / 3</span></span>
+<span id="cb43-7"><a href="#cb43-7" tabindex="-1"></a><span class="fu">E</span>( (X1 <span class="sc">+</span> X2 <span class="sc">+</span> X3) <span class="sc">/</span> <span class="dv">3</span> )</span></code></pre></div>
+                <pre><code>#&gt; E((X1 + X2 + X3)/3)</code></pre>
+                <p>It simplifies to <code>mu</code>. Proof complete.</p>
+                <div class="page-nav">
+                <p><a href="getting-started.html" class="page-nav-item prev">
+                <span class="page-nav-label">Previous</span> <span
+                class="page-nav-title">← Getting Started</span> </a>
+                <a href="derivations.html" class="page-nav-item next">
+                <span class="page-nav-label">Next</span> <span
+                class="page-nav-title">Derivations →</span> </a></p>
+                </div>
+                </div>
+            </article>
+        </main>
+
+        <!-- On This Page TOC -->
+        <aside class="toc-sidebar">
+            <nav class="toc-container">
+                <div class="toc-heading">On This Page</div>
+                <ul class="toc-list">
+                    <!-- Generated dynamically by layout.js -->
+                </ul>
+            </nav>
+        </aside>
+    </div>
+
+    <!-- Layout JavaScript -->
+    <script src="layout.js"></script>
+    
+    <!-- MathJax for equations -->
+    <script>
+        (function () {
+            var script = document.createElement("script");
+            script.type = "text/javascript";
+            script.src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+            document.getElementsByTagName("head")[0].appendChild(script);
+        })();
+    </script>
+    
+    </body>
+</html>

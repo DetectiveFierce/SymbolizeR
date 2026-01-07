@@ -1,0 +1,191 @@
+---
+title: "Symbolic Calculus"
+output: 
+  html_document:
+    template: template.html
+    self_contained: false
+    toc: false
+    theme: null
+    highlight: pygments
+    mathjax: null
+vignette: >
+  %\VignetteIndexEntry{Symbolic Calculus}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE,
+  comment = "#>"
+)
+```
+
+
+```{r setup}
+library(SymbolizeR)
+```
+
+SymbolizeR provides symbolic calculus capabilities for Bayesian statistical computations—**differentiation** for finding MLEs and **integration** for normalizing posterior distributions.
+
+---
+
+## Symbolic Differentiation
+
+The `deriv.sym()` function computes symbolic partial derivatives. It wraps R's `stats::D()` with intelligent handling of expectation operators and automatic simplification.
+
+### Basic Derivatives
+
+```{r deriv-basic}
+# Polynomial differentiation
+deriv.sym(x^3, x)
+
+# Exponential functions
+deriv.sym(exp(x), x)
+
+# Product rule applied automatically
+deriv.sym(x^2 * exp(x), x)
+```
+
+### Derivatives with Constants
+
+Constants (lowercase symbols) are handled correctly:
+
+```{r deriv-const}
+# d/dx of ax + b
+deriv.sym(a * x + b, x)
+
+# d/dx of exp(a*x)
+deriv.sym(exp(a * x), x)
+```
+
+### Handling E() as Constants
+
+A unique feature: `E(Y)` expressions (expectations of other random variables) are treated as constants during differentiation:
+
+```{r deriv-E}
+# d/dx of x * E(Y) — treats E(Y) as constant
+deriv.sym(x * E(Y), x)
+
+# More complex example
+deriv.sym(x^2 * E(Y) + E(Z), x)
+```
+
+This enables computing derivatives in contexts where expectations appear as known quantities.
+
+---
+
+## Symbolic Integration
+
+The `integrate.sym()` function evaluates definite integrals via **kernel recognition**. Instead of general-purpose integration, it matches your integrand against known probability distribution kernels.
+
+### Supported Kernels
+
+| Kernel | Domain | Pattern | Result |
+|--------|--------|---------|--------|
+| **Gamma** | $(0, \infty)$ | $x^{A-1} e^{-Bx}$ | $\Gamma(A) / B^A$ |
+| **Gaussian** | $(-\infty, \infty)$ | $e^{-Ax^2 + Bx}$ | $\sqrt{\pi/A} \cdot e^{B^2/(4A)}$ |
+| **Beta** | $(0, 1)$ | $x^{A-1}(1-x)^{B-1}$ | $B(A, B)$ |
+
+### Gamma Kernel Examples
+
+```{r gamma-kernel}
+# Basic Gamma integral
+integrate.sym(x^2 * exp(-x), x, 0, Inf)
+
+# With rate parameter
+integrate.sym(x^2 * exp(-lambda * x), x, 0, Inf)
+
+# Simple exponential (A = 1)
+integrate.sym(exp(-x), x, 0, Inf)
+```
+
+### Gaussian Kernel Examples
+
+```{r gaussian-kernel}
+# Standard Gaussian integral
+integrate.sym(exp(-x^2), x, -Inf, Inf)
+
+# With coefficient
+integrate.sym(exp(-a * x^2), x, -Inf, Inf)
+
+# Full quadratic with linear term
+integrate.sym(exp(-A * mu^2 + B * mu), mu, -Inf, Inf)
+```
+
+### Beta Kernel Examples
+
+```{r beta-kernel}
+# Simple Beta
+integrate.sym(x * (1-x), x, 0, 1)
+
+# With explicit powers
+integrate.sym(x^2 * (1-x)^3, x, 0, 1)
+
+# Symbolic parameters
+integrate.sym(x^(alpha - 1) * (1-x)^(beta - 1), x, 0, 1)
+```
+
+### Constant Factoring
+
+Constants are automatically separated and preserved:
+
+```{r const-factor}
+# The 'a' is extracted from the integrand
+integrate.sym(a * x^2 * exp(-x), x, 0, Inf)
+```
+
+---
+
+## Bayesian Applications
+
+These tools shine in Bayesian inference, particularly for deriving normalizing constants.
+
+### Beta-Binomial Conjugacy
+
+For **Beta prior** with **Binomial likelihood**, the posterior kernel is:
+$$p(\theta | x) \propto \theta^{\alpha + k - 1}(1-\theta)^{\beta + n - k - 1}$$
+Integration is much harder than differentiation, but it's essential for getting from a PDF to an expectation.
+
+`integrate.sym()` handles polynomial integration and standard definite integrals.
+
+```{r integration}
+# Basic polynomial
+integrate.sym(3 * x^2, "x")
+```
+
+### Definite Integrals and Bounds
+
+Most probability questions are about definite integrals—area under the curve.
+
+```{r definite}
+# Integral of x from 0 to 1
+integrate.sym(x, "x", 0, 1)
+```
+
+This is how the `E(X)` engine actually works for continuous variables under the hood. It sets up the integral $\int_{-\infty}^{\infty} x \cdot f(x) dx$ and solves it.
+
+---
+
+
+
+## What's Next?
+
+You now have the full toolkit:
+1. **[Distributions](distributions.html)** define your variables.
+2. **[Expectations](getting-started.html)** simplify linear combinations.
+3. **[Calculus](calculus.html)** lets you build the definitions from scratch.
+
+If you are curious about exactly *how* R distinguishes between a random variable `X` and a constant `a` without type declarations, check out the final section on **Internals**.
+
+<div class="page-nav">
+  <a href="moments.html" class="page-nav-item prev">
+    <span class="page-nav-label">Previous</span>
+    <span class="page-nav-title">← Moments & Statistics</span>
+  </a>
+  <a href="internals.html" class="page-nav-item next">
+    <span class="page-nav-label">Next</span>
+    <span class="page-nav-title">Package Internals →</span>
+  </a>
+</div>
+

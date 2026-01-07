@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Getting Started with SymbolizeR - SymbolizeR</title>
+    <meta name="description" content="Getting Started with
+SymbolizeR - SymbolizeR documentation">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="dist/output.css">
+    
+    <!-- Pandoc/Rmarkdown Syntax Highlighting Override -->
+    <style>
+        /* Reset pandoc defaults to work with our theme */
+        html { -webkit-text-size-adjust: 100%; }
+        pre > code.sourceCode { white-space: pre; position: relative; }
+        pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+        pre > code.sourceCode > span:empty { height: 1.2em; }
+        .sourceCode { overflow: visible; }
+        code.sourceCode > span { color: inherit; text-decoration: inherit; }
+        div.sourceCode { margin: 1em 0; }
+        pre.sourceCode { margin: 0; }
+        @media screen {
+            div.sourceCode { overflow: auto; }
+        }
+    </style>
+    
+        <script src="getting-started_files/header-attrs-2.29/header-attrs.js"></script>
+    </head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <button class="mobile-menu-btn" aria-label="Toggle Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <a href="index.html" class="header-logo">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="16" cy="16" r="12" stroke-dasharray="4 2"/>
+                <path d="M11 16c0-6 5-10 5-10s5 4 5 10-5 10-5 10-5-4-5-10z"/>
+                <circle cx="16" cy="16" r="3" fill="currentColor"/>
+            </svg>
+            SymbolizeR
+        </a>
+        <nav class="header-nav">
+            <a href="index.html">Docs</a>
+            <a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub</a>
+        </nav>
+        <button class="header-search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Quick search...
+            <kbd>Ctrl K</kbd>
+        </button>
+    </header>
+
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Main Layout -->
+    <div class="docs-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Documentation</div>
+                <ul class="sidebar-nav">
+                    <li><a href="getting-started.html">Getting Started</a></li>
+                    <li><a href="distributions.html">Distributions</a></li>
+                    <li><a href="derivations.html">Derivations</a></li>
+                    <li><a href="moments.html">Moments & Statistics</a></li>
+                    <li><a href="calculus.html">Calculus</a></li>
+                    <li><a href="internals.html">Package Internals</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Resources</div>
+                <ul class="sidebar-nav">
+                    <li><a href="https://github.com/SymbolizeR/SymbolizeR" target="_blank" rel="noopener">GitHub →</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <article class="content-article">
+                                <h1 class="title">Getting Started with
+SymbolizeR</h1>
+                                
+                <p>Most R packages love numbers. Give them data, they
+                give you separate statistics.
+                <strong>SymbolizeR</strong> is different—it cares about
+                the <em>formulas</em> themselves. It lets you write
+                statistical expressions in plain R code and see how they
+                simplify, without needing to plug in a single data point
+                first.</p>
+                <p>It’s essentially a symbolic math engine, but one that
+                speaks the language of probability theory natively.</p>
+                <div class="sourceCode" id="cb1"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(SymbolizeR)</span></code></pre></div>
+                <hr />
+                <div id="the-textbook-convention"
+                class="section level2">
+                <h2>The “Textbook” Convention</h2>
+                <p>When we built SymbolizeR, we didn’t want to force you
+                to manually declare every single variable before you
+                used it. That gets tedious fast.</p>
+                <p>Instead, we borrowed a convention you’ve probably
+                seen in every probability textbook ever written:
+                <strong>Capital letters are Random Variables, and
+                lowercase letters are constants.</strong></p>
+                <p>It’s a simple heuristic, but it makes the code feel
+                almost like handwriting:</p>
+                <table>
+                <colgroup>
+                <col width="45%" />
+                <col width="27%" />
+                <col width="27%" />
+                </colgroup>
+                <thead>
+                <tr class="header">
+                <th>Variable</th>
+                <th>Type</th>
+                <th>Why?</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="odd">
+                <td><code>X</code>, <code>Y</code>,
+                <code>Theta</code></td>
+                <td><strong>Random Variable</strong></td>
+                <td>Starts with uppercase (A-Z)</td>
+                </tr>
+                <tr class="even">
+                <td><code>mu</code>, <code>sigma</code>,
+                <code>a</code></td>
+                <td><strong>Constant</strong></td>
+                <td>Starts with lowercase (a-z)</td>
+                </tr>
+                <tr class="odd">
+                <td><code>42</code>, <code>1.5</code></td>
+                <td><strong>Number</strong></td>
+                <td>It’s just a number</td>
+                </tr>
+                </tbody>
+                </table>
+                <p>You don’t need to register these ahead of time. Just
+                start typing:</p>
+                <div class="sourceCode" id="cb2"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">E</span>(X)      <span class="co"># R sees a capital &#39;X&#39;, so it treats it as random</span></span></code></pre></div>
+                <pre><code>#&gt; E(X)</code></pre>
+                <div class="sourceCode" id="cb4"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">E</span>(mu)     <span class="co"># R sees a lowercase &#39;mu&#39;, so it knows it&#39;s constant</span></span></code></pre></div>
+                <pre><code>#&gt; mu</code></pre>
+                <div class="sourceCode" id="cb6"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">E</span>(<span class="dv">5</span>)      <span class="co"># Numbers are just numbers</span></span></code></pre></div>
+                <pre><code>#&gt; [1] 5</code></pre>
+                <hr />
+                </div>
+                <div id="linearity-is-built-in" class="section level2">
+                <h2>Linearity is Built In</h2>
+                <p>The core of the package is the <code>E()</code>
+                function. It’s not just a wrapper; it’s an engine that
+                understands the <strong>Linearity of
+                Expectation</strong>. It knows that constants can be
+                pulled out and sums can be split apart.</p>
+                <p>This allows you to simplify expressions
+                symbolically:</p>
+                <div class="sourceCode" id="cb8"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Expanding a linear transformation</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">E</span>(a <span class="sc">*</span> X <span class="sc">+</span> b)</span></code></pre></div>
+                <pre><code>#&gt; a * E(X) + b</code></pre>
+                <div class="sourceCode" id="cb10"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># Mixing constants and variables</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">E</span>(<span class="dv">2</span> <span class="sc">*</span> X <span class="sc">+</span> <span class="dv">3</span> <span class="sc">*</span> Y)</span></code></pre></div>
+                <pre><code>#&gt; 2 * E(X) + 3 * E(Y)</code></pre>
+                <p>Notice what happened there? SymbolizeR automatically
+                applied the rules <span
+                class="math inline"><em>E</em>[<em>a</em><em>X</em> + <em>b</em>] = <em>a</em><em>E</em>[<em>X</em>] + <em>b</em></span>
+                and <span
+                class="math inline"><em>E</em>[<em>X</em> + <em>Y</em>] = <em>E</em>[<em>X</em>] + <em>E</em>[<em>Y</em>]</span>.
+                It does the algebra for you.</p>
+                <div id="what-about-multiplication"
+                class="section level3">
+                <h3>What about multiplication?</h3>
+                <p>Multiplication is trickier. If you have <span
+                class="math inline"><em>E</em>[<em>X</em><em>Y</em>]</span>,
+                you can’t just turn that into <span
+                class="math inline"><em>E</em>[<em>X</em>]<em>E</em>[<em>Y</em>]</span>
+                unless you know for a fact that <span
+                class="math inline"><em>X</em></span> and <span
+                class="math inline"><em>Y</em></span> are independent.
+                SymbolizeR is conservative—it won’t make that assumption
+                unless you tell it to.</p>
+                <div class="sourceCode" id="cb12"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">E</span>(X <span class="sc">*</span> Y)</span></code></pre></div>
+                <pre><code>#&gt; E(X * Y)</code></pre>
+                <p>See? It stays as <span
+                class="math inline"><em>E</em>[<em>X</em><em>Y</em>]</span>.
+                But if you <em>do</em> know they are independent, you
+                can say so:</p>
+                <div class="sourceCode" id="cb14"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">assume.independent</span>(X, Y)</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">E</span>(X <span class="sc">*</span> Y)  </span></code></pre></div>
+                <pre><code>#&gt; E(X) * E(Y)</code></pre>
+                <div class="sourceCode" id="cb16"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">clear.independence</span>() </span></code></pre></div>
+                <p>Now it factors them out. This explicit control
+                prevents you from making accidental mathematical
+                errors.</p>
+                <hr />
+                </div>
+                </div>
+                <div id="variance-and-covariance"
+                class="section level2">
+                <h2>Variance and Covariance</h2>
+                <p>We’ve also taught it the definitions of Variance and
+                Covariance. Under the hood, <code>Var(X)</code>
+                basically just expands to <span
+                class="math inline"><em>E</em>[<em>X</em><sup>2</sup>] − <em>E</em>[<em>X</em>]<sup>2</sup></span>.</p>
+                <p>This means logic about constants works exactly as
+                you’d expect:</p>
+                <div class="sourceCode" id="cb17"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">Var</span>(a <span class="sc">*</span> X <span class="sc">+</span> b)</span></code></pre></div>
+                <pre><code>#&gt; E((a * X)^2) + 2 * (a * E(X) * b) + b^2 - (a * E(X) + b)^2</code></pre>
+                <p>Because adding a constant <span
+                class="math inline"><em>b</em></span> simply shifts the
+                distribution, it doesn’t affect the spread, so it
+                disappears from the variance. The scaling factor <span
+                class="math inline"><em>a</em></span> comes out
+                squared.</p>
+                <p>The same logic applies to covariance:</p>
+                <div class="sourceCode" id="cb19"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">Cov</span>(X, Y)</span></code></pre></div>
+                <pre><code>#&gt; E(X * Y) - E(X) * E(Y)</code></pre>
+                <hr />
+                </div>
+                <div id="where-it-utility-stops-for-now"
+                class="section level2">
+                <h2>Where it Utility Stops (For Now)</h2>
+                <p>It’s important to know what SymbolizeR
+                <em>isn’t</em>. It is not a general-purpose Computer
+                Algebra System like Mathematica. It specializes in
+                <strong>expectations of polynomials</strong>.</p>
+                <p>If you throw something non-linear at it that it
+                doesn’t have a specific rule for, it will often just
+                hand it back to you:</p>
+                <div class="sourceCode" id="cb21"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="fu">E</span>(<span class="dv">1</span><span class="sc">/</span>X)    <span class="co"># No general rule for the expectation of an inverse</span></span></code></pre></div>
+                <pre><code>#&gt; E(1/X)</code></pre>
+                <div class="sourceCode" id="cb23"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">E</span>(X<span class="sc">^</span>Y)    <span class="co"># This is getting too wild</span></span></code></pre></div>
+                <pre><code>#&gt; E(X^Y)</code></pre>
+                <p>It’s designed to help you with the messy algebra of
+                moments, derivations, and standard probability
+                manipulations—the stuff that takes up 80% of the time in
+                a standard stats derivation.</p>
+                <hr />
+                </div>
+                <div id="next-steps" class="section level2">
+                <h2>Next Steps</h2>
+                <p>Now that you’ve seen the basics, here’s where you can
+                go deeper:</p>
+                <div class="page-nav">
+                <div>
+
+                </div>
+                <p><a href="distributions.html" class="page-nav-item next">
+                <span class="page-nav-label">Next</span> <span
+                class="page-nav-title">Distributions →</span> </a></p>
+                </div>
+                </div>
+            </article>
+        </main>
+
+        <!-- On This Page TOC -->
+        <aside class="toc-sidebar">
+            <nav class="toc-container">
+                <div class="toc-heading">On This Page</div>
+                <ul class="toc-list">
+                    <!-- Generated dynamically by layout.js -->
+                </ul>
+            </nav>
+        </aside>
+    </div>
+
+    <!-- Layout JavaScript -->
+    <script src="layout.js"></script>
+    
+    <!-- MathJax for equations -->
+    <script>
+        (function () {
+            var script = document.createElement("script");
+            script.type = "text/javascript";
+            script.src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+            document.getElementsByTagName("head")[0].appendChild(script);
+        })();
+    </script>
+    
+    </body>
+</html>

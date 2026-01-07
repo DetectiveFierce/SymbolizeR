@@ -1,0 +1,271 @@
+---
+title: "Working with Distributions"
+output: 
+  rmarkdown::html_vignette:
+    css: vignette-theme.css
+    includes:
+      after_body: vignette-extras.html
+vignette: >
+  %\VignetteIndexEntry{Working with Distributions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE,
+  comment = "#>"
+)
+```
+
+
+```{r setup}
+library(SymbolizeR)
+```
+
+When you define a distribution for a random variable, SymbolizeR automatically substitutes known moments—transforming generic `E(X)` into concrete expressions.
+
+---
+
+## Defining Distributions
+
+Use `define()` with formula syntax:
+
+```{r define-basic}
+define(X ~ Normal(mu, sigma))
+
+E(X)      # Returns the mean
+E(X^2)    # Returns the second moment
+```
+
+---
+
+## Supported Distributions
+
+### Continuous
+
+| Distribution | Syntax | E[X] | Var[X] |
+|--------------|--------|------|--------|
+| **Normal** | `Normal(μ, σ)` | μ | σ² |
+| **Uniform** | `Uniform(a, b)` | (a+b)/2 | (b-a)²/12 |
+| **Exponential** | `Exponential(λ)` | 1/λ | 1/λ² |
+| **Gamma** | `Gamma(α, β)` | α/β | α/β² |
+| **Beta** | `Beta(α, β)` | α/(α+β) | αβ/[(α+β)²(α+β+1)] |
+| **Log-Normal** | `LogNormal(μ, σ)` | exp(μ + σ²/2) | — |
+| **Inverse Gamma** | `InvGamma(α, β)` | β/(α-1) | — |
+| **Weibull** | `Weibull(k, λ)` | λΓ(1+1/k) | — |
+| **Chi-squared** | `ChiSq(df)` | df | 2·df |
+| **Student's t** | `StudentT(df)` | 0 | df/(df-2) |
+
+### Discrete
+
+| Distribution | Syntax | E[X] | Var[X] |
+|--------------|--------|------|--------|
+| **Binomial** | `Binomial(n, p)` | np | np(1-p) |
+| **Poisson** | `Poisson(λ)` | λ | λ |
+| **Geometric** | `Geometric(p)` | 1/p | (1-p)/p² |
+| **Neg. Binomial** | `NegBinomial(r, p)` | r(1-p)/p | — |
+
+
+---
+
+## Examples by Distribution
+
+```{r dist-examples}
+clear.definitions()
+
+# Exponential
+define(T ~ Exponential(lambda))
+E(T)
+E(T^2)
+
+# Poisson
+define(N ~ Poisson(lambda))
+E(N)
+
+# Binomial
+define(X ~ Binomial(n, p))
+E(X)
+```
+
+---
+
+## Variance with Defined Distributions
+
+When moments are known, `Var()` simplifies fully:
+
+```{r variance}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+Var(X)
+```
+
+---
+
+## Moment Generating Functions
+
+For distributions with known MGFs, `E(exp(t*X))` returns the MGF:
+
+```{r mgf}
+clear.definitions()
+
+# Normal MGF
+define(X ~ Normal(mu, sigma))
+E(exp(t * X))
+
+# Exponential MGF
+define(Y ~ Exponential(lambda))
+E(exp(t * Y))
+
+# Poisson MGF
+define(N ~ Poisson(lambda))
+E(exp(t * N))
+```
+
+---
+
+## Multiple Variables
+
+```{r multiple}
+clear.definitions()
+define(X ~ Normal(mu_x, sigma_x))
+define(Y ~ Normal(mu_y, sigma_y))
+
+E(X + Y)
+E(a * X + b * Y)
+
+# Mixed: X known, Z unknown
+E(X + Z)
+```
+
+---
+
+## Variable Management
+
+### Clear All
+
+```{r clear}
+clear.definitions()
+E(X)    # Back to generic
+```
+
+### Remove One
+
+```{r undefine}
+define(X ~ Normal(mu, sigma))
+define(Y ~ Poisson(lambda))
+
+undefine("X")
+E(X)    # Generic
+E(Y)    # Still lambda
+
+clear.definitions()
+```
+
+### Redefine
+
+```{r redefine}
+define(X ~ Normal(mu, sigma))
+E(X)
+
+define(X ~ Exponential(lambda))
+E(X)
+
+clear.definitions()
+```
+
+---
+
+## Practical Example: Sample Mean
+
+```{r sample-mean}
+clear.definitions()
+define(X1 ~ Normal(mu, sigma))
+define(X2 ~ Normal(mu, sigma))
+define(X3 ~ Normal(mu, sigma))
+
+# E[X₁ + X₂ + X₃] = 3μ
+E(X1 + X2 + X3)
+
+# Therefore E[X̄] = (3μ)/3 = μ ✓
+clear.definitions()
+```
+
+---
+
+## nth Moments
+
+Use `moment(X, n)` to compute the nth raw moment E[Xⁿ]:
+
+```{r moments}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+moment(X, 1)  # E[X] = μ
+moment(X, 2)  # E[X²] = σ² + μ²
+moment(X, 3)  # E[X³] - third moment
+moment(X, 4)  # E[X⁴] - fourth moment
+
+clear.definitions()
+```
+
+---
+
+## Higher-Order Statistics
+
+### Skewness
+
+```{r skewness}
+Skewness(X)  # Returns symbolic skewness formula
+```
+
+### Kurtosis
+
+```{r kurtosis}
+# Excess kurtosis (default)
+Kurtosis(X)
+
+# Raw kurtosis
+Kurtosis(X, excess = FALSE)
+```
+
+---
+
+## New Distributions
+
+### Chi-squared
+
+```{r chisq}
+clear.definitions()
+define(X ~ ChiSq(k))
+
+E(X)    # k (degrees of freedom)
+E(X^2)  # k² + 2k
+
+clear.definitions()
+```
+
+### Student's t
+
+```{r student-t}
+clear.definitions()
+define(X ~ StudentT(nu))
+
+E(X)    # 0 (for ν > 1)
+E(X^2)  # ν/(ν-2) (for ν > 2)
+
+clear.definitions()
+```
+
+<div class="vignette-nav">
+  <a href="getting-started.html" class="nav-item prev">
+    <span class="nav-label">Previous</span>
+    <span class="nav-title">1. Getting Started</span>
+  </a>
+  <a href="derivations.html" class="nav-item next">
+    <span class="nav-label">Next</span>
+    <span class="nav-title">3. Derivations</span>
+  </a>
+</div>
+

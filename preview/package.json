@@ -1,0 +1,15 @@
+{
+  "name": "symbolizer-docs",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "bunx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch",
+    "build": "bunx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --minify",
+    "render": "Rscript render_all.R",
+    "build:all": "bun run build && bun run render"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/cli": "^4.0.0"
+  }
+}

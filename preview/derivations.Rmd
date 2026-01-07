@@ -1,0 +1,125 @@
+---
+title: "Step-by-Step Derivations"
+output: 
+  html_document:
+    template: template.html
+    self_contained: false
+    toc: false
+    theme: null
+    highlight: pygments
+    mathjax: null
+vignette: >
+  %\VignetteIndexEntry{Step-by-Step Derivations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE,
+  comment = "#>"
+)
+```
+
+
+```{r setup}
+library(SymbolizeR)
+```
+
+SymbolizeR's derivation functions show **every step** of the calculation—invaluable for learning, teaching, and verification.
+
+---
+
+## `derive.E()` — Expectation Derivation
+
+```{r derive-e}
+derive.E(a * X + b)
+```
+
+### With Defined Distributions
+
+```{r derive-e-defined}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+derive.E(a * X + b)
+
+clear.definitions()
+```
+
+### Linear Combinations
+
+```{r derive-e-linear}
+derive.E(X + Y + Z)
+```
+
+---
+
+## `derive.Var()` — Variance Derivation
+
+Shows complete variance calculation using $\text{Var}(X) = E[X^2] - E[X]^2$:
+
+```{r derive-var}
+derive.Var(X)
+```
+
+### Linear Transformations
+
+See polynomial expansion for $\text{Var}(aX + b)$:
+
+```{r derive-var-linear}
+derive.Var(a * X + b)
+```
+
+### With Defined Distribution
+
+```{r derive-var-defined}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+derive.Var(X)
+
+clear.definitions()
+```
+
+---
+
+## `derive.Cov()` — Covariance Derivation
+
+Shows covariance using $\text{Cov}(X, Y) = E[XY] - E[X]E[Y]$:
+
+```{r derive-cov}
+derive.Cov(X, Y)
+```
+
+---
+
+## Understanding the Output
+
+Each derivation returns a `derivation` object:
+
+| Component | Description |
+derive.Cov(X, X + Y)
+```
+
+It correctly identifies that $\text{Cov}(X, X)$ becomes $\text{Var}(X)$.
+
+---
+
+## Why Use This?
+
+1.  **Debugging Math**: If your hand-derived result doesn't match your simulation, use this to find the line where you made a mistake.
+2.  **Learning**: It helps build intuition for *why* certain terms cancel out.
+3.  **Documentation**: You can copy-paste these derivations directly into your homework or reports.
+
+<div class="page-nav">
+  <a href="distributions.html" class="page-nav-item prev">
+    <span class="page-nav-label">Previous</span>
+    <span class="page-nav-title">← Distributions</span>
+  </a>
+  <a href="moments.html" class="page-nav-item next">
+    <span class="page-nav-label">Next</span>
+    <span class="page-nav-title">Moments & Statistics →</span>
+  </a>
+</div>
+

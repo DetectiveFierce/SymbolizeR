@@ -1,0 +1,190 @@
+---
+title: "SymbolizeR Full Verification"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, collapse = TRUE)
+library(SymbolizeR)
+```
+
+## 1. Basic Expectation, Variance, and Covariance
+
+Test basic symbolic manipulation without defined distributions.
+
+```{r basic}
+# Linearity of Expectation
+E(a * X + b)
+E(X + Y + Z)
+
+# Variance Expansion: Var(X) = E(X^2) - E(X)^2
+Var(X)
+
+# Variance Properties
+Var(a * X + b)
+
+# Covariance Expansion
+Cov(X, Y)
+```
+
+## 2. Like-Term Simplification (Enhancement)
+
+Verify that like terms are combined, even across operations.
+
+```{r simplification}
+# Addition
+E(X + X)          # Expect: 2 * E(X)
+E(2*X + 3*X)      # Expect: 5 * E(X)
+
+# Subtraction
+E(3*X - X)        # Expect: 2 * E(X)
+
+# Cancellation
+E(X - X)          # Expect: 0
+```
+
+## 3. Distribution Support
+
+Verify moments for all supported distributions.
+
+### Continuous Distributions
+
+```{r dist-continuous}
+clear.definitions()
+
+# Normal
+define(X ~ Normal(mu, sigma))
+E(X)              # Expect: mu
+Var(X)            # Expect: sigma^2 (Verifies fix for cancellation)
+
+# Uniform
+define(U ~ Uniform(a, b))
+E(U)              # Expect: (a+b)/2
+
+# Exponential
+define(E ~ Exponential(lambda))
+E(E)              # Expect: 1/lambda
+Var(E)            # Expect: 1/lambda^2
+
+# Gamma, Beta, etc.
+define(G ~ Gamma(alpha, beta))
+E(G)              # Expect: alpha/beta
+```
+
+### Discrete Distributions
+
+```{r dist-discrete}
+clear.definitions()
+
+# Poisson
+define(P ~ Poisson(lambda))
+E(P)              # Expect: lambda
+Var(P)            # Expect: lambda
+
+# Binomial
+define(B ~ Binomial(n, p))
+E(B)              # Expect: n*p
+```
+
+### New Distributions (High Priority Check)
+
+```{r dist-new}
+clear.definitions()
+
+# Chi-squared
+define(C ~ ChiSq(k))
+E(C)              # Expect: k
+E(C^2)            # Expect: k^2 + 2*k
+Var(C)            # Expect: 2*k
+
+# Student's t
+define(T ~ StudentT(nu))
+E(T)              # Expect: 0
+Var(T)            # Expect: nu / (nu - 2)
+```
+
+## 4. Generic Moments (High Priority Check)
+
+Verify `moment(X, n)` function.
+
+```{r moments}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+moment(X, 1)      # Expect: mu
+moment(X, 2)      # Expect: sigma^2 + mu^2
+moment(X, 3)      # Expect: mu^3 + 3*mu*sigma^2
+moment(X, 4)      # Expect: mu^4 + 6*mu^2*sigma^2 + 3*sigma^4
+```
+
+## 5. Higher-Order Statistics (Medium Priority Check)
+
+Verify Skewness and Kurtosis functions.
+
+```{r higher-order}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+# Skewness of Normal should be 0
+Skewness(X)
+
+# Excess Kurtosis of Normal should be 0
+Kurtosis(X)
+
+# Raw Kurtosis
+Kurtosis(X, excess = FALSE)
+```
+
+## 6. Complex Simplification Test (The Reported Bug)
+
+Specifically checking the `Var(X)` simplification for Normal distribution, which involves cancelling `mu^2 - mu^2`.
+
+```{r bug-check}
+clear.definitions()
+define(X ~ Normal(mu, sigma))
+
+# Detailed breakdown
+EX <- E(X)        # mu
+EX2 <- E(X^2)     # sigma^2 + mu^2
+# Manually construct E[X^2] - E[X]^2 symbolically
+V <- call("-", EX2, call("^", EX, 2))
+
+# The following should evaluate strictly to sigma^2
+Var(X)
+```
+
+## 7. Derivations
+
+Verify step-by-step derivation output.
+
+```{r derivations}
+# Expectation
+derive.E(a * X + b)
+
+# Variance
+derive.Var(X)
+```
+
+
+## 8. LaTeX Output
+
+Verify `to.latex()` conversion.
+
+```{r latex, results='asis'}
+# Basic expression
+cat("$$", to.latex(E(a * X + b)), "$$\n")
+
+# Variance
+cat("$$", to.latex(Var(a * X + b)), "$$\n")
+
+# Greek letters
+cat("$$", to.latex(E(alpha * X + beta)), "$$\n")
+
+# Fractions
+cat("$$", to.latex(E(X / Y)), "$$\n")
+
+# Integrals/Moments
+# Note: to.latex might operate on the result of a simplification or derivation
+res <- derive.E(X)
+cat(to.latex(res), "\n")
+```

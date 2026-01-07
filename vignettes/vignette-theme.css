@@ -1,0 +1,562 @@
+/* SymbolizeR Vignette Styling - Modern Dark Green Theme */
+
+:root {
+  --primary-green: #1a472a;
+  --accent-green: #2d6a4f;
+  --light-green: #40916c;
+  --pale-green: #b7e4c7;
+  --bg-dark: #0d1f14;
+  --bg-card: #142a1c;
+  --text-primary: #e8f5e9;
+  --text-secondary: #a5d6a7;
+  --text-muted: #81c784;
+  --border-color: #2e7d32;
+  --code-bg: #1b3824;
+  --inline-code-bg: #1e4d2b;
+}
+
+html {
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #0a1e12 100%);
+  min-height: 100vh;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  color: var(--text-primary);
+  line-height: 1.75;
+  font-size: 16px;
+  margin: 0 auto;
+  padding: 3rem 4rem;
+  max-width: 900px;
+  min-height: 100vh;
+  position: relative;
+  transition: padding-left 0.3s ease;
+}
+
+/* Base adjustment for sidebar space */
+@media (min-width: 1200px) {
+  body {
+    padding-left: 320px; /* Increased slightly for visual balance */
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  body {
+    padding: 4rem 1.5rem 2rem 1.5rem; /* More top padding for hamburger, less side padding */
+    font-size: 15px;
+  }
+  
+  h1 {
+    font-size: 2rem;
+    margin-top: 1rem;
+  }
+  
+  pre {
+    border-radius: 6px;
+    padding: 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+
+/* Removed .container-fluid as it's not in the template */
+
+/* Headers with gradient accent */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(90deg, var(--pale-green), var(--text-muted));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  border-bottom: 3px solid var(--accent-green);
+  padding-bottom: 0.75rem;
+  margin-top: 0;
+}
+
+h2 {
+  font-size: 1.75rem;
+  color: var(--pale-green);
+  border-left: 4px solid var(--light-green);
+  padding-left: 1rem;
+  margin-top: 3rem;
+}
+
+h3 {
+  font-size: 1.35rem;
+  color: var(--text-muted);
+}
+
+/* Paragraphs and lists */
+p {
+  margin-bottom: 1.25rem;
+  color: var(--text-secondary);
+}
+
+ul, ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+
+li {
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/* Links */
+a {
+  color: var(--light-green);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+a:hover {
+  color: var(--pale-green);
+  border-bottom-color: var(--pale-green);
+}
+
+/* Code blocks */
+pre {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+pre.sourceCode, pre.r {
+  background: var(--code-bg);
+  border-left: 4px solid var(--light-green);
+  margin-bottom: 0px; /* Connect slightly to output if they follow each other */
+}
+
+/* Specific styling for output blocks (pre without sourceCode class) */
+pre:not(.sourceCode):not(.r) {
+  background: #08140d; /* Even darker */
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  margin-top: -1.5rem; /* Pull up to touch the source block */
+  padding-top: 0.75rem;
+  color: var(--text-muted);
+}
+
+pre code {
+  background: transparent;
+  color: var(--pale-green);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 0;
+}
+
+/* Inline code */
+code {
+  background: var(--inline-code-bg);
+  color: var(--pale-green);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+  font-size: 0.875em;
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+}
+
+/* Syntax Highlighting - Theme Specific overrides */
+code span.fu { color: #74c69d; font-weight: 600; } /* Functions */
+code span.co { color: #40916c; font-style: italic; } /* Comments */
+code span.dv { color: #b7e4c7; } /* Decimals/Numbers */
+code span.sc { color: #95d5b2; } /* Special characters/Operators */
+code span.st { color: #d8f3dc; } /* Strings */
+code span.kw { color: #b7e4c7; font-weight: bold; } /* Keywords */
+code span.va { color: var(--text-primary); } /* Variables */
+code span.op { color: #95d5b2; } /* Operators */
+code span.at { color: #81c784; } /* Attributes */
+code span.ot { color: #74c69d; } /* Other */
+code span.pp { color: #52b788; } /* Preprocessor */
+code span.fl { color: #b7e4c7; } /* Floats */
+code span.cf { color: #d8f3dc; font-weight: bold; } /* Control Flow */
+code span.in { color: #40916c; font-weight: bold; } /* Information */
+code span.er { color: #ff8b94; border-bottom: 1px solid #ff8b94; } /* Error */
+
+
+/* R output styling - handled above but keeping for reference */
+pre.r {
+  border-left: 4px solid var(--light-green);
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  background: var(--bg-card);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+thead {
+  background: linear-gradient(90deg, var(--primary-green), var(--accent-green));
+}
+
+th {
+  color: var(--pale-green);
+  font-weight: 600;
+  text-align: left;
+  padding: 1rem 1.25rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+td {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid rgba(46, 125, 50, 0.2);
+  color: var(--text-secondary);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover {
+  background: rgba(64, 145, 108, 0.1);
+}
+
+/* Math equations */
+.MathJax {
+  color: var(--pale-green) !important;
+}
+
+/* Blockquotes for tips/notes */
+blockquote {
+  background: var(--bg-card);
+  border-left: 4px solid var(--light-green);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 0 10px 10px 0;
+  color: var(--text-muted);
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Horizontal rules */
+hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+  margin: 3rem 0;
+}
+
+/* Strong and emphasis */
+strong {
+  color: var(--pale-green);
+  font-weight: 600;
+}
+
+em {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* TOC styling */
+#TOC {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+#TOC ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+#TOC li {
+  margin-bottom: 0.5rem;
+}
+
+#TOC a {
+  color: var(--text-muted);
+}
+
+#TOC a:hover {
+  color: var(--pale-green);
+}
+
+/* Sidebar Styling - Desktop Defaults */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background: rgba(13, 31, 20, 0.98); /* Less transparent for legibility */
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--border-color);
+  transform: translateX(-100%); /* Default hidden on mobile, overridden for desktop below */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  padding: 6rem 2rem 3rem 2rem; /* Increased top padding to clear toggle button */
+  box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+}
+
+.sidebar.active {
+  transform: translateX(0);
+}
+
+/* Desktop: Always visible/docked logic */
+@media (min-width: 769px) {
+  .sidebar {
+    transform: translateX(0); /* Always shown */
+    background: var(--bg-card); /* Solid on desktop */
+    backdrop-filter: none;
+  }
+  
+  .sidebar.closed { /* Optional class if we wanted to hide it on desktop */
+    transform: translateX(-100%);
+  }
+  
+  /* Hide toggle on desktop if we want strict permanent sidebar, 
+     but user asked for collapsable. Let's keep toggle logic consistent 
+     or just hide it if we always show sidebar on big screens. 
+     Given user want "collapsable side bar", we support active state. */
+  .sidebar {
+    transform: translateX(-100%); /* Default closed state for collapsable logic */
+  }
+  .sidebar.active {
+    transform: translateX(0);
+  }
+}
+
+.sidebar h2 {
+  font-size: 0.85rem;
+  margin-top: 0;
+  margin-bottom: 2rem;
+  color: var(--text-muted);
+  border: none;
+  padding-left: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  margin-bottom: 0.5rem;
+}
+
+.sidebar a {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.sidebar a:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+  padding-left: 1.25rem;
+}
+
+.sidebar a.active {
+  background: rgba(45, 106, 79, 0.3);
+  color: var(--pale-green);
+  border-left: 3px solid var(--accent-green);
+}
+
+/* Hamburger Button */
+.sidebar-toggle {
+  position: fixed;
+  left: 20px;
+  top: 20px;
+  background: rgba(13, 31, 20, 0.8);
+  backdrop-filter: blur(4px);
+  color: var(--pale-green);
+  border: 0px solid var(--border-color);
+  border-radius: 12px;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+  transform: translateY(-2px);
+  background: var(--bg-card);
+  border-color: var(--light-green);
+  color: white;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+
+.sidebar-toggle:active {
+  transform: translateY(0);
+}
+
+/* Mobile Sidebar Overlay */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 85%;
+    max-width: 320px;
+    left: 0;
+    transform: translateX(-100%);
+    box-shadow: none; /* Shadow only when open */
+  }
+  
+  .sidebar.active {
+    transform: translateX(0);
+    box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+  }
+  
+  /* Overlay when active */
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(3px);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+
+/* Navigation Footer */
+.vignette-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.nav-item {
+  flex: 1;
+  text-decoration: none;
+  max-width: 45%;
+}
+
+.nav-item.prev { text-align: left; }
+.nav-item.next { text-align: right; }
+
+.nav-label {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+}
+
+.nav-title {
+  display: block;
+  font-size: 1.2rem;
+  color: var(--pale-green);
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.nav-item:hover .nav-title {
+  color: var(--light-green);
+}
+
+
+/* Vignette header */
+.title {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.author, .date {
+  text-align: center;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding: 1.5rem 1rem;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  pre {
+    padding: 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  background: var(--accent-green);
+  color: var(--text-primary);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-green);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--light-green);
+}
