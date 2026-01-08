@@ -1,0 +1,631 @@
+
+R version 4.5.2 (2025-10-31) -- "[Not] Part in a Rumble"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> pkgname <- "SymbolizeR"
+> source(file.path(R.home("share"), "R", "examples-header.R"))
+> options(warn = 1)
+> library('SymbolizeR')
+> 
+> base::assign(".oldSearch", base::search(), pos = 'CheckExEnv')
+> base::assign(".old_wd", base::getwd(), pos = 'CheckExEnv')
+> cleanEx()
+> nameEx("Cov")
+> ### * Cov
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: Cov
+> ### Title: Symbolic Covariance
+> ### Aliases: Cov
+> 
+> ### ** Examples
+> 
+> Cov(X, Y)      # Returns: E(X * Y) - E(X) * E(Y)
+E(X * Y) - E(X) * E(Y)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("E")
+> ### * E
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: E
+> ### Title: Symbolic Expectation
+> ### Aliases: E
+> 
+> ### ** Examples
+> 
+> E(X)           # Returns: E(X)
+E(X)
+> E(a * X)       # Returns: a * E(X)
+a * E(X)
+> E(X + Y)       # Returns: E(X) + E(Y)
+E(X) + E(Y)
+> E(2 * X + 3)   # Returns: 2 * E(X) + 3
+2 * E(X) + 3
+> 
+> 
+> 
+> cleanEx()
+> nameEx("Kurtosis")
+> ### * Kurtosis
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: Kurtosis
+> ### Title: Symbolic Kurtosis
+> ### Aliases: Kurtosis
+> 
+> ### ** Examples
+> 
+> Kurtosis(X)  # Returns symbolic excess kurtosis formula
+(E(X^4) - 4 * (E(X) * E(X^3)) + 6 * (E(X)^2 * E(X^2)) - 3 * E(X)^4)/(E(X^2) - 
+    E(X)^2)^2 - 3
+> 
+> # With defined distribution
+> define(X ~ Normal(mu, sigma))
+> Kurtosis(X)  # Returns 0 (normal has excess kurtosis 0)
+[1] 0
+> 
+> 
+> 
+> cleanEx()
+> nameEx("Skewness")
+> ### * Skewness
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: Skewness
+> ### Title: Symbolic Skewness
+> ### Aliases: Skewness
+> 
+> ### ** Examples
+> 
+> Skewness(X)  # Returns symbolic skewness formula
+[1] 0
+> 
+> # With defined distribution
+> define(X ~ Normal(mu, sigma))
+> Skewness(X)  # Returns 0 (normal is symmetric)
+[1] 0
+> 
+> 
+> 
+> cleanEx()
+> nameEx("Var")
+> ### * Var
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: Var
+> ### Title: Symbolic Variance
+> ### Aliases: Var
+> 
+> ### ** Examples
+> 
+> Var(X)         # Returns: E(X^2) - E(X)^2
+sigma^2
+> Var(a * X)     # Returns: a^2 * (E(X^2) - E(X)^2)
+E(a^2 * X^2) - (a * mu)^2
+> 
+> 
+> 
+> cleanEx()
+> nameEx("assume.independent")
+> ### * assume.independent
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: assume.independent
+> ### Title: Declare Independent Random Variables
+> ### Aliases: assume.independent
+> 
+> ### ** Examples
+> 
+> assume.independent(X, Y)
+> E(X * Y)  # Returns: E(X) * E(Y)
+mu * E(Y)
+> 
+> assume.independent(X, Y, Z)  # All three are mutually independent
+> E(X * Y * Z)  # Returns: E(X) * E(Y) * E(Z)
+E(X * Y * Z)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("clear.definitions")
+> ### * clear.definitions
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: clear.definitions
+> ### Title: Clear Variable Definitions
+> ### Aliases: clear.definitions
+> 
+> ### ** Examples
+> 
+> define(X ~ Normal(mu, sigma))
+> clear.definitions()
+> E(X)   # Returns: E(X) (no longer has distribution info)
+E(X)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("clear.independence")
+> ### * clear.independence
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: clear.independence
+> ### Title: Clear Independence Assumptions
+> ### Aliases: clear.independence
+> 
+> ### ** Examples
+> 
+> assume.independent(X, Y)
+> clear.independence()
+> E(X * Y)  # Returns: E(X * Y) (no longer factors)
+E(X * Y)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("define")
+> ### * define
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: define
+> ### Title: Define Random Variable Distribution
+> ### Aliases: define
+> 
+> ### ** Examples
+> 
+> define(X ~ Normal(mu, sigma))
+> E(X)   # Returns: mu (instead of E(X))
+mu
+> E(X^2) # Returns: sigma^2 + mu^2
+sigma^2 + mu^2
+> 
+> 
+> 
+> cleanEx()
+> nameEx("deriv.sym")
+> ### * deriv.sym
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: deriv.sym
+> ### Title: Symbolic Differentiation
+> ### Aliases: deriv.sym
+> 
+> ### ** Examples
+> 
+> deriv.sym(x^3, x)             # 3 * x^2
+3 * x^2
+> deriv.sym(exp(a * x), x)      # a * exp(a * x)
+exp(a * x) * a
+> deriv.sym(x * E(Y), x)        # E(Y) (treats E(Y) as constant)
+E(Y)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("derive.Cov")
+> ### * derive.Cov
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: derive.Cov
+> ### Title: Derive Covariance Step-by-Step
+> ### Aliases: derive.Cov
+> 
+> ### ** Examples
+> 
+> derive.Cov(X, Y)
+Derivation of: Cov(X, Y) 
+==================================================
+
+Step 1: Starting expression
+  Rule: Input
+  => Cov(X, Y)
+
+Step 2: Apply covariance definition
+  Rule: Cov[X, Y] = E[XY] - E[X]E[Y]
+  => E[X * Y] - E[X] * E[Y]
+
+Step 3: Compute E[XY]
+  Rule: Apply expectation rules to product
+  => E(X * Y) - E[X] * E[Y]
+
+Step 4: Compute E[X] * E[Y]
+  Rule: Apply expectation rules to each variable
+  => E(X * Y) - mu * E(Y)
+
+Step 5: Combine terms
+  Rule: E[XY] - E[X]E[Y]
+  => E(X * Y) - mu * E(Y)
+
+Step 6: Final result
+  Rule: Done
+  => E(X * Y) - mu * E(Y)
+
+==================================================
+Final Answer: E(X * Y) - mu * E(Y)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("derive.E")
+> ### * derive.E
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: derive.E
+> ### Title: Derive Expectation Step-by-Step
+> ### Aliases: derive.E
+> 
+> ### ** Examples
+> 
+> derive.E(a * X + b)
+Derivation of: E(a * X + b) 
+==================================================
+
+Step 1: Starting expression
+  Rule: Input
+  => E(a * X + b)
+
+Step 2: Apply expectation rules
+  Rule: Linearity: E[aX + b] = aE[X] + b, E[X + Y] = E[X] + E[Y]
+  => a * mu + b
+
+Step 3: Substitute known distributions
+  Rule: If X ~ Distribution, replace E[X] with known moment
+  => a * mu + b
+
+Step 4: Final result
+  Rule: Done
+  => a * mu + b
+
+==================================================
+Final Answer: a * mu + b
+> derive.E(X + Y)
+Derivation of: E(X + Y) 
+==================================================
+
+Step 1: Starting expression
+  Rule: Input
+  => E(X + Y)
+
+Step 2: Apply expectation rules
+  Rule: Linearity: E[aX + b] = aE[X] + b, E[X + Y] = E[X] + E[Y]
+  => mu + E(Y)
+
+Step 3: Substitute known distributions
+  Rule: If X ~ Distribution, replace E[X] with known moment
+  => mu + E(Y)
+
+Step 4: Final result
+  Rule: Done
+  => mu + E(Y)
+
+==================================================
+Final Answer: mu + E(Y)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("derive.Kurtosis")
+> ### * derive.Kurtosis
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: derive.Kurtosis
+> ### Title: Derive Kurtosis Step-by-Step
+> ### Aliases: derive.Kurtosis
+> 
+> ### ** Examples
+> 
+> derive.Kurtosis(X)
+Derivation of: Kurtosis(X) 
+==================================================
+
+Step 1: Starting expression
+  Rule: Input
+  => Kurtosis(X)
+
+Step 2: Apply excess kurtosis definition
+  Rule: Excess Kurtosis = E[(X-mu)^4] / sigma^4 - 3
+  => E[(X - E[X])^4] / (Var[X])^2 - 3
+
+Step 3: Compute required moments
+  Rule: E[X], E[X^2], E[X^4]
+  => E[X] = mu, E[X^2] = sigma^2 + mu^2, E[X^4] = E(X^4)
+
+Step 4: Substitute moments into formula
+  Rule: gamma2 = (E[X^4] - 4*mu*E[X^3] + 6*mu^2*E[X^2] - 3*mu^4) / sigma^4 - 3
+  => (E(X^4) - 4 * (mu * E(X^3)) + 6 * (mu^2 * (sigma^2 + mu^2)) -     3 * mu^4)/sigma^4 - 3
+
+Step 5: Final result
+  Rule: Done
+  => 0
+
+==================================================
+Final Answer: 0
+> 
+> 
+> 
+> cleanEx()
+> nameEx("derive.Skewness")
+> ### * derive.Skewness
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: derive.Skewness
+> ### Title: Derive Skewness Step-by-Step
+> ### Aliases: derive.Skewness
+> 
+> ### ** Examples
+> 
+> derive.Skewness(X)
+Derivation of: Skewness(X) 
+==================================================
+
+Step 1: Starting expression
+  Rule: Input
+  => Skewness(X)
+
+Step 2: Apply skewness definition
+  Rule: Skewness = E[(X-mu)^3] / sigma^3
+  => E[(X - E[X])^3] / (Var[X])^(3/2)
+
+Step 3: Compute required moments
+  Rule: E[X], E[X^2], E[X^3]
+  => E[X] = mu, E[X^2] = sigma^2 + mu^2, E[X^3] = E(X^3)
+
+Step 4: Substitute moments into formula
+  Rule: gamma1 = (E[X^3] - 3*mu*E[X^2] + 2*mu^3) / sigma^3
+  => (E(X^3) - 3 * (mu * (sigma^2 + mu^2)) + 2 * mu^3)/(sigma^2)^(3/2)
+
+Step 5: Final result
+  Rule: Done
+  => 0
+
+==================================================
+Final Answer: 0
+> 
+> 
+> 
+> cleanEx()
+> nameEx("derive.Var")
+> ### * derive.Var
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: derive.Var
+> ### Title: Derive Variance Step-by-Step
+> ### Aliases: derive.Var
+> 
+> ### ** Examples
+> 
+> derive.Var(X)
+Derivation of: Var(X) 
+==================================================
+
+Step 1: Starting expression
+  Rule: Input
+  => Var(X)
+
+Step 2: Apply variance definition
+  Rule: Var[X] = E[X^2] - E[X]^2
+  => E[X^2] - E[X]^2
+
+Step 3: Compute E[X^2]
+  Rule: Apply expectation rules to X^2
+  => sigma^2 + mu^2 - E[X]^2
+
+Step 4: Compute E[X]^2
+  Rule: Apply expectation rules to X, then square
+  => sigma^2 + mu^2 - mu^2
+
+Step 5: Combine terms
+  Rule: E[X^2] - E[X]^2
+  => sigma^2 + mu^2 - mu^2
+
+Step 6: Simplify
+  Rule: Algebraic simplification
+  => sigma^2
+
+Step 7: Final result
+  Rule: Done
+  => sigma^2
+
+==================================================
+Final Answer: sigma^2
+> derive.Var(a * X + b)
+Derivation of: Var(a * X + b) 
+==================================================
+
+Step 1: Starting expression
+  Rule: Input
+  => Var(a * X + b)
+
+Step 2: Apply variance definition
+  Rule: Var[X] = E[X^2] - E[X]^2
+  => E[(a * X + b)^2] - E[a * X + b]^2
+
+Step 3: Expand polynomial
+  Rule: (a + b)^2 = a^2 + 2ab + b^2
+  => E[(a * X)^2 + 2 * (a * X * b) + b^2] - E[a * X + b]^2
+
+Step 4: Compute E[X^2]
+  Rule: Apply expectation rules to X^2
+  => E((a * X)^2) + 2 * (a * mu * b) + b^2 - E[a * X + b]^2
+
+Step 5: Compute E[X]^2
+  Rule: Apply expectation rules to X, then square
+  => E((a * X)^2) + 2 * (a * mu * b) + b^2 - (a * mu + b)^2
+
+Step 6: Combine terms
+  Rule: E[X^2] - E[X]^2
+  => E((a * X)^2) + 2 * (a * mu * b) + b^2 - (a * mu + b)^2
+
+Step 7: Final result
+  Rule: Done
+  => E((a * X)^2) + 2 * (a * mu * b) + b^2 - (a * mu + b)^2
+
+==================================================
+Final Answer: E((a * X)^2) + 2 * (a * mu * b) + b^2 - (a * mu + b)^2
+> 
+> 
+> 
+> cleanEx()
+> nameEx("integrate.sym")
+> ### * integrate.sym
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: integrate.sym
+> ### Title: Symbolic Definite Integration
+> ### Aliases: integrate.sym
+> 
+> ### ** Examples
+> 
+> # Gamma kernel: integral of x^2 * exp(-x) from 0 to Inf = Gamma(3) = 2
+> integrate.sym(x^2 * exp(-x), x, 0, Inf)
+gamma(2 + 1)
+> 
+> # Gaussian kernel: integral of exp(-x^2) from -Inf to Inf = sqrt(pi)
+> integrate.sym(exp(-x^2), x, -Inf, Inf)
+sqrt(pi/0) * exp(0)
+> 
+> # Beta kernel: integral of x * (1-x) from 0 to 1 = Beta(2, 2) = 1/6
+> integrate.sym(x * (1-x), x, 0, 1)
+beta(1 + 1, 1 + 1)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("moment")
+> ### * moment
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: moment
+> ### Title: Compute nth Raw Moment
+> ### Aliases: moment
+> 
+> ### ** Examples
+> 
+> define(X ~ Normal(mu, sigma))
+> moment(X, 1)  # Returns: mu
+mu
+> moment(X, 2)  # Returns: sigma^2 + mu^2
+sigma^2 + mu^2
+> 
+> # For undefined variables
+> moment(Y, 3)  # Returns: E(Y^3)
+E(Y^3)
+> 
+> 
+> 
+> cleanEx()
+> nameEx("show.independence")
+> ### * show.independence
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: show.independence
+> ### Title: Show Independence Assumptions
+> ### Aliases: show.independence
+> 
+> ### ** Examples
+> 
+> assume.independent(X, Y)
+> assume.independent(A, B, C)
+> show.independence()
+Independence assumptions:
+   X ⊥ Y 
+   A ⊥ B 
+   A ⊥ C 
+   B ⊥ C 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("to.latex")
+> ### * to.latex
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: to.latex
+> ### Title: Convert Expression to LaTeX
+> ### Aliases: to.latex
+> 
+> ### ** Examples
+> 
+> to.latex(E(a * X + b))
+LaTeX:
+a \mu + b 
+> to.latex(Var(X), delimiters = "inline")
+LaTeX:
+$\sigma^{2}$ 
+> to.latex(quote(sigma^2 + mu^2), delimiters = "display")
+LaTeX:
+\[
+  \sigma^{2} + \mu^{2}
+\] 
+> 
+> 
+> 
+> cleanEx()
+> nameEx("undefine")
+> ### * undefine
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: undefine
+> ### Title: Undefine a Variable
+> ### Aliases: undefine
+> 
+> ### ** Examples
+> 
+> define(X ~ Normal(mu, sigma))
+> undefine("X")
+> 
+> 
+> 
+> ### * <FOOTER>
+> ###
+> cleanEx()
+> options(digits = 7L)
+> base::cat("Time elapsed: ", proc.time() - base::get("ptime", pos = 'CheckExEnv'),"\n")
+Time elapsed:  0.054 0.007 0.061 0 0 
+> grDevices::dev.off()
+null device 
+          1 
+> ###
+> ### Local variables: ***
+> ### mode: outline-minor ***
+> ### outline-regexp: "\\(> \\)?### [*]+" ***
+> ### End: ***
+> quit('no')

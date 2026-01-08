@@ -1,0 +1,20 @@
+Package: SymbolizeR
+Title: Symbolic Probability Calculations
+Version: 0.1.0
+Authors@R: 
+    person("Aidan J", "Wagner", email = "aidanjwagner03@gmail.com", role = c("aut", "cre"))
+Description: A lightweight symbolic probability engine that helps users derive
+    Expectations, Variances, and Covariances using standard R syntax. Uses a
+    capital letter heuristic to distinguish random variables (uppercase) from
+    constants (lowercase).
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Suggests: testthat (>= 3.0.0)
+Config/testthat/edition: 3
+NeedsCompilation: no
+Packaged: 2026-01-08 00:59:57 UTC; shared-psychosis
+Author: Aidan J Wagner [aut, cre]
+Maintainer: Aidan J Wagner <aidanjwagner03@gmail.com>
+Built: R 4.5.2; ; 2026-01-08 01:00:11 UTC; unix

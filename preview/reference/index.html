@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Function Reference - SymbolizeR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../dist/output.css">
+    <style>
+        .search-container { margin-bottom: 2rem; }
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background: var(--bg-secondary);
+            color: var(--fg-primary);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .function-grid {
+            display: grid;
+            gap: 0.5rem;
+        }
+        .function-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: var(--fg-primary);
+            transition: background 0.15s;
+        }
+        .function-item:hover {
+            background: var(--bg-tertiary);
+        }
+        .function-item code {
+            font-family: "JetBrains Mono", monospace;
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .function-item .desc {
+            color: var(--fg-secondary);
+            font-size: 0.875rem;
+        }
+        .category-section { margin-bottom: 2rem; }
+        .category-section h2 { 
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <button class="mobile-menu-btn" aria-label="Toggle Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <a href="../index.html" class="header-logo">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="16" cy="16" r="12" stroke-dasharray="4 2"/>
+                <path d="M11 16c0-6 5-10 5-10s5 4 5 10-5 10-5 10-5-4-5-10z"/>
+                <circle cx="16" cy="16" r="3" fill="currentColor"/>
+            </svg>
+            SymbolizeR
+        </a>
+        <nav class="header-nav">
+            <a href="../index.html">Docs</a>
+            <a href="index.html" class="active">Reference</a>
+        </nav>
+    </header>
+
+    <div class="sidebar-overlay"></div>
+
+    <div class="docs-layout">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Documentation</div>
+                <ul class="sidebar-nav">
+                    <li><a href="../getting-started.html">Getting Started</a></li>
+                    <li><a href="../distributions.html">Distributions</a></li>
+                    <li><a href="../derivations.html">Derivations</a></li>
+                    <li><a href="../moments.html">Moments & Statistics</a></li>
+                    <li><a href="../calculus.html">Calculus</a></li>
+                    <li><a href="../internals.html">Package Internals</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html" class="active">All Functions</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <article class="content-article">
+                <h1 class="title">Function Reference</h1>
+                <p>Complete documentation for all exported functions in SymbolizeR.</p>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" id="function-search" 
+                           placeholder="Search functions..." autocomplete="off">
+                </div>
+
+                <div class="category-section" data-category="Core Functions">
+                    <h2>Core Functions</h2>
+                    <div class="function-grid">
+
+                        <a href="Cov.html" class="function-item" data-name="cov" data-desc="symbolic covariance">
+                            <code>Cov()</code>
+                            <span class="desc">Symbolic Covariance</span>
+                        </a>
+
+                        <a href="E.html" class="function-item" data-name="e" data-desc="symbolic expectation">
+                            <code>E()</code>
+                            <span class="desc">Symbolic Expectation</span>
+                        </a>
+
+                        <a href="Var.html" class="function-item" data-name="var" data-desc="symbolic variance">
+                            <code>Var()</code>
+                            <span class="desc">Symbolic Variance</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="category-section" data-category="Higher-Order Statistics">
+                    <h2>Higher-Order Statistics</h2>
+                    <div class="function-grid">
+
+                        <a href="Kurtosis.html" class="function-item" data-name="kurtosis" data-desc="symbolic kurtosis">
+                            <code>Kurtosis()</code>
+                            <span class="desc">Symbolic Kurtosis</span>
+                        </a>
+
+                        <a href="Skewness.html" class="function-item" data-name="skewness" data-desc="symbolic skewness">
+                            <code>Skewness()</code>
+                            <span class="desc">Symbolic Skewness</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="category-section" data-category="Step-by-Step Derivations">
+                    <h2>Step-by-Step Derivations</h2>
+                    <div class="function-grid">
+
+                        <a href="derive.Cov.html" class="function-item" data-name="derive.cov" data-desc="derive covariance step-by-step">
+                            <code>derive.Cov()</code>
+                            <span class="desc">Derive Covariance Step-by-Step</span>
+                        </a>
+
+                        <a href="derive.E.html" class="function-item" data-name="derive.e" data-desc="derive expectation step-by-step">
+                            <code>derive.E()</code>
+                            <span class="desc">Derive Expectation Step-by-Step</span>
+                        </a>
+
+                        <a href="derive.Kurtosis.html" class="function-item" data-name="derive.kurtosis" data-desc="derive kurtosis step-by-step">
+                            <code>derive.Kurtosis()</code>
+                            <span class="desc">Derive Kurtosis Step-by-Step</span>
+                        </a>
+
+                        <a href="derive.Skewness.html" class="function-item" data-name="derive.skewness" data-desc="derive skewness step-by-step">
+                            <code>derive.Skewness()</code>
+                            <span class="desc">Derive Skewness Step-by-Step</span>
+                        </a>
+
+                        <a href="derive.Var.html" class="function-item" data-name="derive.var" data-desc="derive variance step-by-step">
+                            <code>derive.Var()</code>
+                            <span class="desc">Derive Variance Step-by-Step</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="category-section" data-category="Distributions">
+                    <h2>Distributions</h2>
+                    <div class="function-grid">
+
+                        <a href="clear.definitions.html" class="function-item" data-name="clear.definitions" data-desc="clear variable definitions">
+                            <code>clear.definitions()</code>
+                            <span class="desc">Clear Variable Definitions</span>
+                        </a>
+
+                        <a href="define.html" class="function-item" data-name="define" data-desc="define random variable distribution">
+                            <code>define()</code>
+                            <span class="desc">Define Random Variable Distribution</span>
+                        </a>
+
+                        <a href="undefine.html" class="function-item" data-name="undefine" data-desc="undefine a variable">
+                            <code>undefine()</code>
+                            <span class="desc">Undefine a Variable</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="category-section" data-category="Independence">
+                    <h2>Independence</h2>
+                    <div class="function-grid">
+
+                        <a href="assume.independent.html" class="function-item" data-name="assume.independent" data-desc="declare independent random variables">
+                            <code>assume.independent()</code>
+                            <span class="desc">Declare Independent Random Variables</span>
+                        </a>
+
+                        <a href="clear.independence.html" class="function-item" data-name="clear.independence" data-desc="clear independence assumptions">
+                            <code>clear.independence()</code>
+                            <span class="desc">Clear Independence Assumptions</span>
+                        </a>
+
+                        <a href="show.independence.html" class="function-item" data-name="show.independence" data-desc="show independence assumptions">
+                            <code>show.independence()</code>
+                            <span class="desc">Show Independence Assumptions</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="category-section" data-category="Moments">
+                    <h2>Moments</h2>
+                    <div class="function-grid">
+
+                        <a href="moment.html" class="function-item" data-name="moment" data-desc="compute nth raw moment">
+                            <code>moment()</code>
+                            <span class="desc">Compute nth Raw Moment</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="category-section" data-category="Calculus">
+                    <h2>Calculus</h2>
+                    <div class="function-grid">
+
+                        <a href="deriv.sym.html" class="function-item" data-name="deriv.sym" data-desc="symbolic differentiation">
+                            <code>deriv.sym()</code>
+                            <span class="desc">Symbolic Differentiation</span>
+                        </a>
+
+                        <a href="integrate.sym.html" class="function-item" data-name="integrate.sym" data-desc="symbolic definite integration">
+                            <code>integrate.sym()</code>
+                            <span class="desc">Symbolic Definite Integration</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="category-section" data-category="LaTeX Output">
+                    <h2>LaTeX Output</h2>
+                    <div class="function-grid">
+
+                        <a href="to.latex.html" class="function-item" data-name="to.latex" data-desc="convert expression to latex">
+                            <code>to.latex()</code>
+                            <span class="desc">Convert Expression to LaTeX</span>
+                        </a>
+                    </div>
+                </div>
+
+            </article>
+        </main>
+    </div>
+
+    <script src="../layout.js"></script>
+    <script>
+    (function() {
+        const searchInput = document.getElementById("function-search");
+        const items = document.querySelectorAll(".function-item");
+        const sections = document.querySelectorAll(".category-section");
+        
+        searchInput.addEventListener("input", function() {
+            const query = this.value.toLowerCase().trim();
+            
+            items.forEach(item => {
+                const name = item.dataset.name;
+                const desc = item.dataset.desc;
+                const matches = name.includes(query) || desc.includes(query);
+                item.classList.toggle("hidden", !matches && query.length > 0);
+            });
+            
+            // Hide empty sections
+            sections.forEach(section => {
+                const visibleItems = section.querySelectorAll(".function-item:not(.hidden)");
+                section.classList.toggle("hidden", visibleItems.length === 0 && query.length > 0);
+            });
+        });
+        
+        // Focus search on Ctrl+K
+        document.addEventListener("keydown", function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
+

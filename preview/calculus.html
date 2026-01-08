@@ -82,6 +82,7 @@ Calculus - SymbolizeR documentation">
                     <li><a href="moments.html">Moments & Statistics</a></li>
                     <li><a href="calculus.html">Calculus</a></li>
                     <li><a href="internals.html">Package Internals</a></li>
+                    <li><a href="reference/index.html">Function Reference</a></li>
                 </ul>
             </div>
             <div class="sidebar-section">
@@ -217,15 +218,15 @@ Calculus - SymbolizeR documentation">
                 <div class="sourceCode" id="cb16"><pre
                 class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="co"># Basic Gamma integral</span></span>
 <span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
-                <pre><code>#&gt; gamma(2 + 1)/(--1)^(2 + 1)</code></pre>
+                <pre><code>#&gt; gamma(2 + 1)</code></pre>
                 <div class="sourceCode" id="cb18"><pre
                 class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="co"># With rate parameter</span></span>
 <span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>lambda <span class="sc">*</span> x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
-                <pre><code>#&gt; gamma(2 + 1)/(--lambda)^(2 + 1)</code></pre>
+                <pre><code>#&gt; gamma(2 + 1)/lambda^(2 + 1)</code></pre>
                 <div class="sourceCode" id="cb20"><pre
                 class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># Simple exponential (A = 1)</span></span>
 <span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(<span class="fu">exp</span>(<span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
-                <pre><code>#&gt; 1/--1</code></pre>
+                <pre><code>#&gt; [1] 1</code></pre>
                 </div>
                 <div id="gaussian-kernel-examples"
                 class="section level3">
@@ -265,7 +266,7 @@ Calculus - SymbolizeR documentation">
                 <div class="sourceCode" id="cb34"><pre
                 class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a><span class="co"># The &#39;a&#39; is extracted from the integrand</span></span>
 <span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(a <span class="sc">*</span> x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
-                <pre><code>#&gt; a * (gamma(2 + 1)/(--1)^(2 + 1))</code></pre>
+                <pre><code>#&gt; a * gamma(2 + 1)</code></pre>
                 <hr />
                 </div>
                 </div>

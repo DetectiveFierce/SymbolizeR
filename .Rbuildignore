@@ -2,3 +2,11 @@
 ^\.Rproj\.user$
 ^doc$
 ^Meta$
+^dev$
+^preview$
+^repro_skewness\.R$
+^SymbolizeR\.Rcheck$
+.*\.tar\.gz$
+^\.git$
+^\.gitignore$
+^README\.md$

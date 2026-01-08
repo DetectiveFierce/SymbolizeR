@@ -1,0 +1,26 @@
+Cov                     Symbolic Covariance
+E                       Symbolic Expectation
+Kurtosis                Symbolic Kurtosis
+Skewness                Symbolic Skewness
+Var                     Symbolic Variance
+assume.independent      Declare Independent Random Variables
+clear.definitions       Clear Variable Definitions
+clear.independence      Clear Independence Assumptions
+define                  Define Random Variable Distribution
+deriv.sym               Symbolic Differentiation
+derive.Cov              Derive Covariance Step-by-Step
+derive.E                Derive Expectation Step-by-Step
+derive.Kurtosis         Derive Kurtosis Step-by-Step
+derive.Skewness         Derive Skewness Step-by-Step
+derive.Var              Derive Variance Step-by-Step
+integrate.sym           Symbolic Definite Integration
+moment                  Compute nth Raw Moment
+print.conditional_moment
+                        Print Conditional Moment
+print.derivation        Print Derivation
+print.latex_output      Print LaTeX Output
+show.independence       Show Independence Assumptions
+to.latex                Convert Expression to LaTeX
+to.latex.default        Default LaTeX Conversion
+to.latex.derivation     Convert Derivation to LaTeX
+undefine                Undefine a Variable

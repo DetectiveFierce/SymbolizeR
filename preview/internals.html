@@ -82,6 +82,7 @@ Internals - SymbolizeR documentation">
                     <li><a href="moments.html">Moments & Statistics</a></li>
                     <li><a href="calculus.html">Calculus</a></li>
                     <li><a href="internals.html">Package Internals</a></li>
+                    <li><a href="reference/index.html">Function Reference</a></li>
                 </ul>
             </div>
             <div class="sidebar-section">
@@ -171,24 +172,56 @@ Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))</code></pre>
                 </tr>
                 <tr class="odd">
                 <td><code>02_internal_simplify.R</code></td>
-                <td>Simplification: <code>simplify.expr</code></td>
+                <td>Algebraic simplification:
+                <code>simplify.expr</code>,
+                <code>collect.terms</code></td>
                 </tr>
                 <tr class="even">
                 <td><code>03_user_wrappers.R</code></td>
-                <td>Public API: <code>E()</code>, <code>Var()</code>,
-                <code>Cov()</code>, <code>derive.*()</code></td>
+                <td>Core API: <code>E()</code>, <code>Var()</code>,
+                <code>Cov()</code></td>
                 </tr>
                 <tr class="odd">
-                <td><code>04_distributions.R</code></td>
-                <td>Distribution registry: <code>define()</code>, moment
-                getters, independence</td>
+                <td><code>04_higher_order.R</code></td>
+                <td>Higher-order statistics: <code>Skewness()</code>,
+                <code>Kurtosis()</code></td>
                 </tr>
                 <tr class="even">
-                <td><code>05_calculus.R</code></td>
-                <td>Symbolic differentiation and integration</td>
+                <td><code>05_derivations.R</code></td>
+                <td>Step-by-step: <code>derive.E()</code>,
+                <code>derive.Var()</code>, etc.</td>
                 </tr>
                 <tr class="odd">
-                <td><code>06_latex.R</code></td>
+                <td><code>06_distributions.R</code></td>
+                <td>Distribution registry: <code>define()</code>,
+                <code>undefine()</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>07_independence.R</code></td>
+                <td>Independence: <code>assume.independent()</code>,
+                <code>are.independent()</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>08_moments.R</code></td>
+                <td>Moment lookup: <code>get.first.moment()</code>,
+                <code>get.mgf()</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>09_higher_moments.R</code></td>
+                <td>3rd/4th moments: <code>get.nth.moment()</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>10_calculus.R</code></td>
+                <td>Symbolic differentiation:
+                <code>deriv.sym()</code></td>
+                </tr>
+                <tr class="even">
+                <td><code>11_integration.R</code></td>
+                <td>Kernel integration:
+                <code>integrate.sym()</code></td>
+                </tr>
+                <tr class="odd">
+                <td><code>12_latex.R</code></td>
                 <td>LaTeX conversion: <code>to.latex()</code></td>
                 </tr>
                 </tbody>
@@ -343,65 +376,168 @@ Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))</code></pre>
                 </div>
                 </div>
                 <div
-                id="expression-simplification-02_internal_simplify.r"
+                id="algebraic-simplification-02_internal_simplify.r"
                 class="section level2">
-                <h2>Expression Simplification
+                <h2>Algebraic Simplification
                 (<code>02_internal_simplify.R</code>)</h2>
-                <p>After transformation, <code>simplify.expr()</code>
-                cleans up identity operations:</p>
+                <p>The simplification system is one of the most
+                sophisticated parts of SymbolizeR. It combines multiple
+                techniques to reduce expressions to canonical form.</p>
+                <div id="identity-elimination" class="section level3">
+                <h3>Identity Elimination</h3>
+                <p>The first pass removes trivial identity
+                operations:</p>
                 <table>
                 <thead>
                 <tr class="header">
                 <th>Pattern</th>
                 <th>Simplifies To</th>
+                <th>Rule</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr class="odd">
                 <td><code>x + 0</code></td>
                 <td><code>x</code></td>
+                <td>Additive identity</td>
                 </tr>
                 <tr class="even">
-                <td><code>0 + x</code></td>
-                <td><code>x</code></td>
-                </tr>
-                <tr class="odd">
                 <td><code>x * 1</code></td>
                 <td><code>x</code></td>
+                <td>Multiplicative identity</td>
                 </tr>
-                <tr class="even">
+                <tr class="odd">
                 <td><code>x * 0</code></td>
                 <td><code>0</code></td>
-                </tr>
-                <tr class="odd">
-                <td><code>x - 0</code></td>
-                <td><code>x</code></td>
+                <td>Zero property</td>
                 </tr>
                 <tr class="even">
-                <td><code>0 / x</code></td>
-                <td><code>0</code></td>
-                </tr>
-                <tr class="odd">
                 <td><code>x^0</code></td>
                 <td><code>1</code></td>
-                </tr>
-                <tr class="even">
-                <td><code>x^1</code></td>
-                <td><code>x</code></td>
+                <td>Zero exponent</td>
                 </tr>
                 <tr class="odd">
+                <td><code>x^1</code></td>
+                <td><code>x</code></td>
+                <td>Unit exponent</td>
+                </tr>
+                <tr class="even">
                 <td><code>E(constant)</code></td>
                 <td><code>constant</code></td>
+                <td>Expectation of constant</td>
                 </tr>
                 </tbody>
                 </table>
-                <p>The simplifier also recurses into nested expressions,
-                making multiple passes when needed:</p>
-                <div class="sourceCode" id="cb21"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="co"># Internal call (not exported)</span></span>
-<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a><span class="fu">simplify.expr</span>(<span class="fu">quote</span>(x <span class="sc">+</span> <span class="dv">0</span>))    <span class="co"># x</span></span>
-<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a><span class="fu">simplify.expr</span>(<span class="fu">quote</span>(<span class="dv">1</span> <span class="sc">*</span> <span class="fu">E</span>(a))) <span class="co"># a (E of constant becomes constant)</span></span></code></pre></div>
+                </div>
+                <div id="like-term-collection" class="section level3">
+                <h3>Like-Term Collection</h3>
+                <p>The key algorithm is <strong>like-term
+                collection</strong>, which combines terms such as:</p>
+                <p><span
+                class="math display"><em>a</em> ⋅ <em>X</em> + <em>b</em> ⋅ <em>X</em> → (<em>a</em> + <em>b</em>) ⋅ <em>X</em></span></p>
+                <div id="step-1-flatten-to-terms-flatten.to.terms"
+                class="section level4">
+                <h4>Step 1: Flatten to Terms
+                (<code>flatten.to.terms</code>)</h4>
+                <p>Converts nested sums into a flat list of
+                <code>(coefficient, base)</code> pairs:</p>
+                <pre><code>Input: 2*X + 3*Y - X
+Output: [(2, X), (3, Y), (-1, X)]</code></pre>
+                </div>
+                <div
+                id="step-2-extract-coefficient-and-base-extract.coef.base"
+                class="section level4">
+                <h4>Step 2: Extract Coefficient and Base
+                (<code>extract.coef.base</code>)</h4>
+                <p>Separates each term into its numeric coefficient and
+                symbolic base:</p>
+                <div class="sourceCode" id="cb22"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="co"># Internal structure:</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="fu">extract.coef.base</span>(<span class="fu">quote</span>(<span class="dv">3</span> <span class="sc">*</span> X))  <span class="co"># list(coef=3, base=X)</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="fu">extract.coef.base</span>(<span class="fu">quote</span>(X))      <span class="co"># list(coef=1, base=X)</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="fu">extract.coef.base</span>(<span class="fu">quote</span>(<span class="sc">-</span><span class="dv">2</span> <span class="sc">*</span> Y)) <span class="co"># list(coef=-2, base=Y)</span></span></code></pre></div>
+                </div>
+                <div id="step-3-canonical-keys-canonical.key"
+                class="section level4">
+                <h4>Step 3: Canonical Keys
+                (<code>canonical.key</code>)</h4>
+                <p>Creates a unique string representation for each base,
+                so we can group like terms:</p>
+                <div class="sourceCode" id="cb23"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">canonical.key</span>(<span class="fu">quote</span>(X))      <span class="co"># &quot;X^1&quot;</span></span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a><span class="fu">canonical.key</span>(<span class="fu">quote</span>(X<span class="sc">^</span><span class="dv">2</span>))    <span class="co"># &quot;X^2&quot;</span></span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a><span class="fu">canonical.key</span>(<span class="fu">quote</span>(X <span class="sc">*</span> Y))  <span class="co"># &quot;X^1*Y^1&quot;  (alphabetically sorted)</span></span></code></pre></div>
+                </div>
+                <div id="step-4-collect-and-sum-collect.terms"
+                class="section level4">
+                <h4>Step 4: Collect and Sum
+                (<code>collect.terms</code>)</h4>
+                <p>Groups terms by canonical key, sums coefficients, and
+                reconstructs:</p>
+                <div class="sourceCode" id="cb24"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="co"># Before: 2*X + 3*Y - X</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a><span class="co"># Grouped: {&quot;X^1&quot;: [2, -1], &quot;Y^1&quot;: [3]}</span></span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a><span class="co"># Summed:  {&quot;X^1&quot;: 1, &quot;Y^1&quot;: 3}</span></span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="co"># After:   X + 3*Y</span></span></code></pre></div>
+                </div>
+                </div>
+                <div id="product-normalization-normalize.product"
+                class="section level3">
+                <h3>Product Normalization
+                (<code>normalize.product</code>)</h3>
+                <p>For products like <code>2 * X * 3 * X^2</code>,
+                extracts numeric coefficients and combines variable
+                powers:</p>
+                <pre><code>Input:  2 * X * 3 * X^2
+Output: list(coef=6, base=X^3)</code></pre>
+                <p>This handles the algebraic identity: <span
+                class="math inline"><em>a</em> ⋅ <em>x</em><sup><em>m</em></sup> ⋅ <em>b</em> ⋅ <em>x</em><sup><em>n</em></sup> = (<em>a</em><em>b</em>) ⋅ <em>x</em><sup><em>m</em> + <em>n</em></sup></span></p>
+                </div>
+                <div id="simplification-pipeline"
+                class="section level3">
+                <h3>Simplification Pipeline</h3>
+                <pre><code>Raw Expression
+     │
+     ▼
+┌──────────────────┐
+│ Identity Removal │  ← x+0→x, x*1→x, x^1→x
+└──────────────────┘
+     │
+     ▼
+┌──────────────────┐
+│ Flatten to Terms │  ← Nested sums → flat list
+└──────────────────┘
+     │
+     ▼
+┌──────────────────┐
+│ Normalize Powers │  ← x*x → x^2, combine exponents
+└──────────────────┘
+     │
+     ▼
+┌──────────────────┐
+│ Collect Like     │  ← aX + bX → (a+b)X
+└──────────────────┘
+     │
+     ▼
+┌──────────────────┐
+│ Reconstruct      │  ← List → expression tree
+└──────────────────┘
+     │
+     ▼
+Simplified Expression</code></pre>
+                </div>
+                <div id="multiple-passes" class="section level3">
+                <h3>Multiple Passes</h3>
+                <p>Some simplifications enable others. For example,
+                after <code>collect.terms</code> combines
+                <code>2*X + 3*X</code> into <code>5*X</code>, identity
+                removal might find new opportunities. The main functions
+                call <code>simplify.expr</code> multiple times:</p>
+                <div class="sourceCode" id="cb27"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="co"># In Var():</span></span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a>clean_result <span class="ot">&lt;-</span> <span class="fu">simplify.expr</span>(<span class="fu">simplify.expr</span>(<span class="fu">simplify.expr</span>(result)))</span></code></pre></div>
                 <hr />
+                </div>
                 </div>
                 <div id="polynomial-expansion-00_utils.r"
                 class="section level2">
@@ -409,9 +545,9 @@ Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))</code></pre>
                 <p>The <code>expand.poly()</code> function handles
                 algebraic expansion for variance/covariance
                 calculations:</p>
-                <div class="sourceCode" id="cb22"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="co"># Variance needs (aX + b)^2 expanded</span></span>
-<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="fu">Var</span>(a <span class="sc">*</span> X <span class="sc">+</span> b)</span></code></pre></div>
+                <div class="sourceCode" id="cb28"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="co"># Variance needs (aX + b)^2 expanded</span></span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a><span class="fu">Var</span>(a <span class="sc">*</span> X <span class="sc">+</span> b)</span></code></pre></div>
                 <pre><code>#&gt; E((a * X)^2) + 2 * (a * E(X) * b) + b^2 - (a * E(X) + b)^2</code></pre>
                 <p>Internally, <code>expand.poly()</code> applies:</p>
                 <p><span
@@ -435,14 +571,14 @@ Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))</code></pre>
                 <h3>The Package Environment</h3>
                 <p>Distributions are stored in a private environment
                 <code>pkg.env</code>:</p>
-                <div class="sourceCode" id="cb24"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span></code></pre></div>
+                <div class="sourceCode" id="cb30"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span></code></pre></div>
                 <p>This stores:</p>
-                <div class="sourceCode" id="cb25"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a>pkg.env<span class="sc">$</span>X <span class="ot">=</span> <span class="fu">list</span>(</span>
-<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>  <span class="at">distribution =</span> <span class="st">&quot;Normal&quot;</span>,</span>
-<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a>  <span class="at">params =</span> <span class="fu">list</span>(<span class="at">mu =</span> <span class="fu">quote</span>(mu), <span class="at">sigma =</span> <span class="fu">quote</span>(sigma))</span>
-<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a>)</span></code></pre></div>
+                <div class="sourceCode" id="cb31"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a>pkg.env<span class="sc">$</span>X <span class="ot">=</span> <span class="fu">list</span>(</span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a>  <span class="at">distribution =</span> <span class="st">&quot;Normal&quot;</span>,</span>
+<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a>  <span class="at">params =</span> <span class="fu">list</span>(<span class="at">mu =</span> <span class="fu">quote</span>(mu), <span class="at">sigma =</span> <span class="fu">quote</span>(sigma))</span>
+<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a>)</span></code></pre></div>
                 </div>
                 <div id="moment-lookup" class="section level3">
                 <h3>Moment Lookup</h3>
@@ -458,29 +594,29 @@ Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))</code></pre>
                 </ul>
                 <p>Each function uses a <code>switch()</code> on the
                 distribution name to return the appropriate formula:</p>
-                <div class="sourceCode" id="cb26"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
-<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a><span class="fu">E</span>(X)      <span class="co"># mu (from get.first.moment)</span></span></code></pre></div>
+                <div class="sourceCode" id="cb32"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="fu">define</span>(X <span class="sc">~</span> <span class="fu">Normal</span>(mu, sigma))</span>
+<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a><span class="fu">E</span>(X)      <span class="co"># mu (from get.first.moment)</span></span></code></pre></div>
                 <pre><code>#&gt; mu</code></pre>
-                <div class="sourceCode" id="cb28"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a><span class="fu">E</span>(X<span class="sc">^</span><span class="dv">2</span>)    <span class="co"># sigma^2 + mu^2 (from get.second.moment)</span></span></code></pre></div>
+                <div class="sourceCode" id="cb34"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a><span class="fu">E</span>(X<span class="sc">^</span><span class="dv">2</span>)    <span class="co"># sigma^2 + mu^2 (from get.second.moment)</span></span></code></pre></div>
                 <pre><code>#&gt; sigma^2 + mu^2</code></pre>
-                <div class="sourceCode" id="cb30"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
+                <div class="sourceCode" id="cb36"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="fu">clear.definitions</span>()</span></code></pre></div>
                 </div>
                 <div id="independence-tracking" class="section level3">
                 <h3>Independence Tracking</h3>
                 <p>Independence is stored as pairs in
                 <code>pkg.env$.independence_pairs</code>:</p>
-                <div class="sourceCode" id="cb31"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">assume.independent</span>(X, Y, Z)  <span class="co"># Creates pairs: X:Y, X:Z, Y:Z</span></span>
-<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a><span class="fu">show.independence</span>()</span></code></pre></div>
+                <div class="sourceCode" id="cb37"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a><span class="fu">assume.independent</span>(X, Y, Z)  <span class="co"># Creates pairs: X:Y, X:Z, Y:Z</span></span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a><span class="fu">show.independence</span>()</span></code></pre></div>
                 <pre><code>#&gt; Independence assumptions:
 #&gt;    X ⊥ Y 
 #&gt;    X ⊥ Z 
 #&gt;    Y ⊥ Z</code></pre>
-                <div class="sourceCode" id="cb33"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="fu">clear.independence</span>()</span></code></pre></div>
+                <div class="sourceCode" id="cb39"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a><span class="fu">clear.independence</span>()</span></code></pre></div>
                 <p>The <code>are.independent(x, y)</code> function
                 checks if a pair exists in this list.</p>
                 <hr />
@@ -495,11 +631,11 @@ Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))</code></pre>
                 <p><code>deriv.sym()</code> wraps
                 <code>stats::D()</code> with special handling for
                 <code>E()</code> calls:</p>
-                <div class="sourceCode" id="cb34"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a><span class="fu">deriv.sym</span>(x<span class="sc">^</span><span class="dv">3</span>, x)           <span class="co"># 3 * x^2</span></span></code></pre></div>
+                <div class="sourceCode" id="cb40"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a><span class="fu">deriv.sym</span>(x<span class="sc">^</span><span class="dv">3</span>, x)           <span class="co"># 3 * x^2</span></span></code></pre></div>
                 <pre><code>#&gt; 3 * x^2</code></pre>
-                <div class="sourceCode" id="cb36"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="fu">deriv.sym</span>(x <span class="sc">*</span> <span class="fu">E</span>(Y), x)      <span class="co"># E(Y) - treats E(Y) as constant</span></span></code></pre></div>
+                <div class="sourceCode" id="cb42"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a><span class="fu">deriv.sym</span>(x <span class="sc">*</span> <span class="fu">E</span>(Y), x)      <span class="co"># E(Y) - treats E(Y) as constant</span></span></code></pre></div>
                 <pre><code>#&gt; E(Y)</code></pre>
                 <p>The <code>protect.E()</code> /
                 <code>restore.E()</code> pattern replaces
@@ -512,17 +648,17 @@ Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))</code></pre>
                 <p><code>integrate.sym()</code> uses <strong>kernel
                 recognition</strong> rather than symbolic
                 antiderivatives:</p>
-                <div class="sourceCode" id="cb38"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="co"># Gamma kernel: x^a * exp(-bx)</span></span>
-<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
-                <pre><code>#&gt; gamma(2 + 1)/(--1)^(2 + 1)</code></pre>
-                <div class="sourceCode" id="cb40"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a><span class="co"># Gaussian kernel: exp(-ax^2)</span></span>
-<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(<span class="fu">exp</span>(<span class="sc">-</span>x<span class="sc">^</span><span class="dv">2</span>), x, <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <div class="sourceCode" id="cb44"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" tabindex="-1"></a><span class="co"># Gamma kernel: x^a * exp(-bx)</span></span>
+<span id="cb44-2"><a href="#cb44-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="cn">Inf</span>)</span></code></pre></div>
+                <pre><code>#&gt; gamma(2 + 1)</code></pre>
+                <div class="sourceCode" id="cb46"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" tabindex="-1"></a><span class="co"># Gaussian kernel: exp(-ax^2)</span></span>
+<span id="cb46-2"><a href="#cb46-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(<span class="fu">exp</span>(<span class="sc">-</span>x<span class="sc">^</span><span class="dv">2</span>), x, <span class="sc">-</span><span class="cn">Inf</span>, <span class="cn">Inf</span>)</span></code></pre></div>
                 <pre><code>#&gt; sqrt(pi/0) * exp(0)</code></pre>
-                <div class="sourceCode" id="cb42"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a><span class="co"># Beta kernel: x^a * (1-x)^b</span></span>
-<span id="cb42-2"><a href="#cb42-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x <span class="sc">*</span> (<span class="dv">1</span><span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="dv">1</span>)</span></code></pre></div>
+                <div class="sourceCode" id="cb48"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" tabindex="-1"></a><span class="co"># Beta kernel: x^a * (1-x)^b</span></span>
+<span id="cb48-2"><a href="#cb48-2" tabindex="-1"></a><span class="fu">integrate.sym</span>(x <span class="sc">*</span> (<span class="dv">1</span><span class="sc">-</span>x), x, <span class="dv">0</span>, <span class="dv">1</span>)</span></code></pre></div>
                 <pre><code>#&gt; beta(1 + 1, 1 + 1)</code></pre>
                 <p>If no kernel matches, an unevaluated
                 <code>Integrate()</code> call is returned.</p>
@@ -535,12 +671,12 @@ Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))</code></pre>
                 <p>The <code>to.latex()</code> S3 generic dispatches to
                 <code>expr.to.latex()</code> for recursive
                 conversion:</p>
-                <div class="sourceCode" id="cb44"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" tabindex="-1"></a><span class="fu">to.latex</span>(<span class="fu">E</span>(a <span class="sc">*</span> X <span class="sc">+</span> b))</span></code></pre></div>
+                <div class="sourceCode" id="cb50"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" tabindex="-1"></a><span class="fu">to.latex</span>(<span class="fu">E</span>(a <span class="sc">*</span> X <span class="sc">+</span> b))</span></code></pre></div>
                 <pre><code>#&gt; LaTeX:
 #&gt; a \mathbb{E}[X] + b</code></pre>
-                <div class="sourceCode" id="cb46"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" tabindex="-1"></a><span class="fu">to.latex</span>(<span class="fu">Var</span>(X))</span></code></pre></div>
+                <div class="sourceCode" id="cb52"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" tabindex="-1"></a><span class="fu">to.latex</span>(<span class="fu">Var</span>(X))</span></code></pre></div>
                 <pre><code>#&gt; LaTeX:
 #&gt; \mathbb{E}[X^{2}] - \mathbb{E}[X]^{2}</code></pre>
                 <p>Key conversions:</p>
@@ -690,20 +826,20 @@ Output: a * E(X) + b  (or a * mu + b if X ~ Normal(mu, sigma))</code></pre>
                 matching</strong>.</p>
                 <p>Internally, it looks something like this
                 pseudocode:</p>
-                <div class="sourceCode" id="cb49"><pre
-                class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" tabindex="-1"></a>process_node <span class="ot">&lt;-</span> <span class="cf">function</span>(node) {</span>
-<span id="cb49-2"><a href="#cb49-2" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.sum</span>(node)) {</span>
-<span id="cb49-3"><a href="#cb49-3" tabindex="-1"></a>    <span class="fu">return</span>( <span class="fu">process_node</span>(node<span class="sc">$</span>left) <span class="sc">+</span> <span class="fu">process_node</span>(node<span class="sc">$</span>right) )</span>
-<span id="cb49-4"><a href="#cb49-4" tabindex="-1"></a>  }</span>
-<span id="cb49-5"><a href="#cb49-5" tabindex="-1"></a>  </span>
-<span id="cb49-6"><a href="#cb49-6" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.product</span>(node)) {</span>
-<span id="cb49-7"><a href="#cb49-7" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.constant</span>(node<span class="sc">$</span>left) <span class="sc">&amp;&amp;</span> <span class="fu">is.random</span>(node<span class="sc">$</span>right)) {</span>
-<span id="cb49-8"><a href="#cb49-8" tabindex="-1"></a>      <span class="fu">return</span>( node<span class="sc">$</span>left <span class="sc">*</span> <span class="fu">E</span>(node<span class="sc">$</span>right) )</span>
-<span id="cb49-9"><a href="#cb49-9" tabindex="-1"></a>    }</span>
-<span id="cb49-10"><a href="#cb49-10" tabindex="-1"></a>  }</span>
-<span id="cb49-11"><a href="#cb49-11" tabindex="-1"></a>  </span>
-<span id="cb49-12"><a href="#cb49-12" tabindex="-1"></a>  <span class="co"># ... more rules ...</span></span>
-<span id="cb49-13"><a href="#cb49-13" tabindex="-1"></a>}</span></code></pre></div>
+                <div class="sourceCode" id="cb55"><pre
+                class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" tabindex="-1"></a>process_node <span class="ot">&lt;-</span> <span class="cf">function</span>(node) {</span>
+<span id="cb55-2"><a href="#cb55-2" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.sum</span>(node)) {</span>
+<span id="cb55-3"><a href="#cb55-3" tabindex="-1"></a>    <span class="fu">return</span>( <span class="fu">process_node</span>(node<span class="sc">$</span>left) <span class="sc">+</span> <span class="fu">process_node</span>(node<span class="sc">$</span>right) )</span>
+<span id="cb55-4"><a href="#cb55-4" tabindex="-1"></a>  }</span>
+<span id="cb55-5"><a href="#cb55-5" tabindex="-1"></a>  </span>
+<span id="cb55-6"><a href="#cb55-6" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">is.product</span>(node)) {</span>
+<span id="cb55-7"><a href="#cb55-7" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">is.constant</span>(node<span class="sc">$</span>left) <span class="sc">&amp;&amp;</span> <span class="fu">is.random</span>(node<span class="sc">$</span>right)) {</span>
+<span id="cb55-8"><a href="#cb55-8" tabindex="-1"></a>      <span class="fu">return</span>( node<span class="sc">$</span>left <span class="sc">*</span> <span class="fu">E</span>(node<span class="sc">$</span>right) )</span>
+<span id="cb55-9"><a href="#cb55-9" tabindex="-1"></a>    }</span>
+<span id="cb55-10"><a href="#cb55-10" tabindex="-1"></a>  }</span>
+<span id="cb55-11"><a href="#cb55-11" tabindex="-1"></a>  </span>
+<span id="cb55-12"><a href="#cb55-12" tabindex="-1"></a>  <span class="co"># ... more rules ...</span></span>
+<span id="cb55-13"><a href="#cb55-13" tabindex="-1"></a>}</span></code></pre></div>
                 <p>It keeps recursing until it hits a base case (like a
                 defined distribution or a generic variable).</p>
                 <hr />

@@ -75,11 +75,17 @@ The R source files are numbered by dependency order:
 |------|---------|
 | `00_utils.R` | Core utilities: `classify.type`, `ensure.expression`, `expand.poly` |
 | `01_internal_expect.R` | Expectation engine: `expect.recursive` |
-| `02_internal_simplify.R` | Simplification: `simplify.expr` |
-| `03_user_wrappers.R` | Public API: `E()`, `Var()`, `Cov()`, `derive.*()` |
-| `04_distributions.R` | Distribution registry: `define()`, moment getters, independence |
-| `05_calculus.R` | Symbolic differentiation and integration |
-| `06_latex.R` | LaTeX conversion: `to.latex()` |
+| `02_internal_simplify.R` | Algebraic simplification: `simplify.expr`, `collect.terms` |
+| `03_user_wrappers.R` | Core API: `E()`, `Var()`, `Cov()` |
+| `04_higher_order.R` | Higher-order statistics: `Skewness()`, `Kurtosis()` |
+| `05_derivations.R` | Step-by-step: `derive.E()`, `derive.Var()`, etc. |
+| `06_distributions.R` | Distribution registry: `define()`, `undefine()` |
+| `07_independence.R` | Independence: `assume.independent()`, `are.independent()` |
+| `08_moments.R` | Moment lookup: `get.first.moment()`, `get.mgf()` |
+| `09_higher_moments.R` | 3rd/4th moments: `get.nth.moment()` |
+| `10_calculus.R` | Symbolic differentiation: `deriv.sym()` |
+| `11_integration.R` | Kernel integration: `integrate.sym()` |
+| `12_latex.R` | LaTeX conversion: `to.latex()` |
 
 ---
 
@@ -199,28 +205,122 @@ clear.independence()
 
 ---
 
-## Expression Simplification (`02_internal_simplify.R`)
+## Algebraic Simplification (`02_internal_simplify.R`)
 
-After transformation, `simplify.expr()` cleans up identity operations:
+The simplification system is one of the most sophisticated parts of SymbolizeR. It combines multiple techniques to reduce expressions to canonical form.
 
-| Pattern | Simplifies To |
-|---------|---------------|
-| `x + 0` | `x` |
-| `0 + x` | `x` |
-| `x * 1` | `x` |
-| `x * 0` | `0` |
-| `x - 0` | `x` |
-| `0 / x` | `0` |
-| `x^0` | `1` |
-| `x^1` | `x` |
-| `E(constant)` | `constant` |
+### Identity Elimination
 
-The simplifier also recurses into nested expressions, making multiple passes when needed:
+The first pass removes trivial identity operations:
 
-```{r simplify, eval=FALSE}
-# Internal call (not exported)
-simplify.expr(quote(x + 0))    # x
-simplify.expr(quote(1 * E(a))) # a (E of constant becomes constant)
+| Pattern | Simplifies To | Rule |
+|---------|---------------|------|
+| `x + 0` | `x` | Additive identity |
+| `x * 1` | `x` | Multiplicative identity |
+| `x * 0` | `0` | Zero property |
+| `x^0` | `1` | Zero exponent |
+| `x^1` | `x` | Unit exponent |
+| `E(constant)` | `constant` | Expectation of constant |
+
+### Like-Term Collection
+
+The key algorithm is **like-term collection**, which combines terms such as:
+
+$$a \cdot X + b \cdot X \to (a+b) \cdot X$$
+
+#### Step 1: Flatten to Terms (`flatten.to.terms`)
+
+Converts nested sums into a flat list of `(coefficient, base)` pairs:
+
+```
+Input: 2*X + 3*Y - X
+Output: [(2, X), (3, Y), (-1, X)]
+```
+
+#### Step 2: Extract Coefficient and Base (`extract.coef.base`)
+
+Separates each term into its numeric coefficient and symbolic base:
+
+```{r coef-base, eval=FALSE}
+# Internal structure:
+extract.coef.base(quote(3 * X))  # list(coef=3, base=X)
+extract.coef.base(quote(X))      # list(coef=1, base=X)
+extract.coef.base(quote(-2 * Y)) # list(coef=-2, base=Y)
+```
+
+#### Step 3: Canonical Keys (`canonical.key`)
+
+Creates a unique string representation for each base, so we can group like terms:
+
+```{r canonical, eval=FALSE}
+canonical.key(quote(X))      # "X^1"
+canonical.key(quote(X^2))    # "X^2"
+canonical.key(quote(X * Y))  # "X^1*Y^1"  (alphabetically sorted)
+```
+
+#### Step 4: Collect and Sum (`collect.terms`)
+
+Groups terms by canonical key, sums coefficients, and reconstructs:
+
+```{r collect, eval=FALSE}
+# Before: 2*X + 3*Y - X
+# Grouped: {"X^1": [2, -1], "Y^1": [3]}
+# Summed:  {"X^1": 1, "Y^1": 3}
+# After:   X + 3*Y
+```
+
+### Product Normalization (`normalize.product`)
+
+For products like `2 * X * 3 * X^2`, extracts numeric coefficients and combines variable powers:
+
+```
+Input:  2 * X * 3 * X^2
+Output: list(coef=6, base=X^3)
+```
+
+This handles the algebraic identity: $a \cdot x^m \cdot b \cdot x^n = (ab) \cdot x^{m+n}$
+
+### Simplification Pipeline
+
+```
+Raw Expression
+     │
+     ▼
+┌──────────────────┐
+│ Identity Removal │  ← x+0→x, x*1→x, x^1→x
+└──────────────────┘
+     │
+     ▼
+┌──────────────────┐
+│ Flatten to Terms │  ← Nested sums → flat list
+└──────────────────┘
+     │
+     ▼
+┌──────────────────┐
+│ Normalize Powers │  ← x*x → x^2, combine exponents
+└──────────────────┘
+     │
+     ▼
+┌──────────────────┐
+│ Collect Like     │  ← aX + bX → (a+b)X
+└──────────────────┘
+     │
+     ▼
+┌──────────────────┐
+│ Reconstruct      │  ← List → expression tree
+└──────────────────┘
+     │
+     ▼
+Simplified Expression
+```
+
+### Multiple Passes
+
+Some simplifications enable others. For example, after `collect.terms` combines `2*X + 3*X` into `5*X`, identity removal might find new opportunities. The main functions call `simplify.expr` multiple times:
+
+```{r multipass, eval=FALSE}
+# In Var():
+clean_result <- simplify.expr(simplify.expr(simplify.expr(result)))
 ```
 
 ---

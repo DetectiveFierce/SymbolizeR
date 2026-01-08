@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>derive.Kurtosis - SymbolizeR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../dist/output.css">
+</head>
+<body>
+    <header class="site-header">
+        <button class="mobile-menu-btn" aria-label="Toggle Menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <a href="../index.html" class="header-logo">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="16" cy="16" r="12" stroke-dasharray="4 2"/>
+                <path d="M11 16c0-6 5-10 5-10s5 4 5 10-5 10-5 10-5-4-5-10z"/>
+                <circle cx="16" cy="16" r="3" fill="currentColor"/>
+            </svg>
+            SymbolizeR
+        </a>
+        <nav class="header-nav">
+            <a href="../index.html">Docs</a>
+            <a href="index.html">Reference</a>
+        </nav>
+    </header>
+
+    <div class="sidebar-overlay"></div>
+
+    <div class="docs-layout">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Reference</div>
+                <ul class="sidebar-nav">
+                    <li><a href="index.html">← All Functions</a></li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Step-by-Step Derivations</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <article class="content-article">
+                <div class="function-header">
+                    <h1 class="title">derive.Kurtosis()</h1>
+                    <span class="function-category">Step-by-Step Derivations</span>
+                </div>
+                <p class="function-description">Shows step-by-step derivation of the kurtosis calculation.</p>
+                
+                <h2 id="usage">Usage</h2>
+                <pre class="sourceCode r"><code>derive.Kurtosis(expr, excess = TRUE)</code></pre>
+
+                <h2 id="arguments">Arguments</h2>
+                <table class="arguments-table">
+                <thead><tr><th>Argument</th><th>Description</th></tr></thead>
+                <tbody>
+                <tr><td><code>expr</code></td><td>An R expression involving random variables and constants</td></tr>
+                <tr><td><code>excess</code></td><td>Logical; if TRUE (default), derives excess kurtosis</td></tr>
+                </tbody></table>
+
+                <h2 id="value">Value</h2>
+                <p>A list with steps showing the derivation</p>
+
+                <h2 id="examples">Examples</h2>
+                <pre class="sourceCode r"><code>derive.Kurtosis(X)</code></pre>
+
+            </article>
+        </main>
+
+        <aside class="toc-sidebar">
+            <nav class="toc-container">
+                <div class="toc-heading">On This Page</div>
+                <ul class="toc-list">
+                    <li><a href="#usage">Usage</a></li>
+                    <li><a href="#arguments">Arguments</a></li>
+                    <li><a href="#value">Value</a></li>
+                    <li><a href="#examples">Examples</a></li>
+                </ul>
+            </nav>
+        </aside>
+    </div>
+
+    <script src="../layout.js"></script>
+</body>
+</html>
+
